@@ -2,7 +2,6 @@ package board
 
 import (
 	"fmt"
-	"math"
 	"strings"
 	"unicode"
 
@@ -19,7 +18,24 @@ const (
 
 const StartingFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
 
-func SquareToIndex(square string) int {
+var precomputedSquareToCoords = map[string][2]int{}
+
+func init() {
+	for i, f := range Files {
+		for j, r := range Ranks {
+			precomputedSquareToCoords[string(f)+string(r)] = [2]int{i + 1, j + 1}
+		}
+	}
+}
+
+func SquareToCoords(square string) (int, int) {
+	coords, ok := precomputedSquareToCoords[square]
+	assert.Assert(ok, fmt.Sprintf("%s is not a valid square", square))
+
+	return coords[0], coords[1]
+}
+
+func squareToIndex(square string) int {
 	assert.Assert(len(square) == 2, fmt.Sprintf("invalid square: %s", square))
 
 	rank := strings.IndexByte(Ranks, square[1])
@@ -31,7 +47,11 @@ func SquareToIndex(square string) int {
 	return rank*boardLength + file
 }
 
-type chessboard [64]int
+func indexToSquare(index int) string {
+	return string(Files[index%8]) + string(Ranks[index/8])
+}
+
+type chessboard [64]piece.Piece
 
 func LoadFEN(fen string) chessboard {
 	piecePlacement := strings.Split(fen, " ")[0]
@@ -50,7 +70,7 @@ func LoadFEN(fen string) chessboard {
 		} else {
 			p := piece.CharToPiece[unicode.ToLower(char)]
 
-			var color int
+			var color piece.Piece
 			if unicode.IsUpper(char) {
 				color = piece.White
 			} else {
@@ -65,12 +85,7 @@ func LoadFEN(fen string) chessboard {
 	return board
 }
 
-func clearScreen() {
-	fmt.Print("\033[H\033[2J")
-}
-
 func (b chessboard) Print() {
-	clearScreen()
 	whiteSquare := "\033[48;2;194;167;120m"
 	whitePiece := "\033[38;2;255;255;255m"
 
@@ -80,6 +95,7 @@ func (b chessboard) Print() {
 	reset := "\033[0m"
 
 	for rank := 7; rank >= 0; rank-- {
+		fmt.Printf("%d ", rank+1)
 		for file := 0; file < 8; file++ {
 			p := b[rank*boardLength+file]
 
@@ -97,17 +113,31 @@ func (b chessboard) Print() {
 				squareColor = blackSquare
 			}
 
-			char := string(piece.PieceToChar[int(math.Abs(float64(p)))])
+			char := string(piece.PieceToChar[piece.Value(p)])
 			fmt.Print(squareColor, pieceColor, " ", char, " ", reset)
 		}
 		fmt.Println()
 	}
+
+	fmt.Println("   a  b  c  d  e  f  g  h")
 }
 
 func (b *chessboard) MakeMove(src, dest string) {
-	srcIndex := SquareToIndex(src)
-	destIndex := SquareToIndex(dest)
+	srcIndex := squareToIndex(src)
+	destIndex := squareToIndex(dest)
 
 	b[destIndex] = b[srcIndex]
 	b[srcIndex] = piece.None
+}
+
+func (b chessboard) Square(square string) piece.Piece {
+	return b[squareToIndex(square)]
+}
+
+func (b chessboard) Squares() map[string]piece.Piece {
+	squares := map[string]piece.Piece{}
+	for i, p := range b {
+		squares[indexToSquare(i)] = p
+	}
+	return squares
 }

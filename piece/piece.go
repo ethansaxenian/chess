@@ -1,7 +1,11 @@
 package piece
 
+import "math"
+
+type Piece int
+
 const (
-	None int = iota
+	None Piece = iota
 	Pawn
 	Knight
 	Bishop
@@ -11,11 +15,19 @@ const (
 )
 
 const (
-	White int = 1
-	Black int = -1
+	White Piece = 1
+	Black Piece = -1
 )
 
-var CharToPiece = map[rune]int{
+var StartingPawnRanks = map[Piece]int{
+	Pawn * White: 2,
+	Pawn * Black: 7,
+}
+
+var AllPieces = []Piece{Pawn, Knight, Bishop, Rook, Queen, King}
+var AllColors = []Piece{White, Black}
+
+var CharToPiece = map[rune]Piece{
 	'_': None,
 	'p': Pawn,
 	'n': Knight,
@@ -25,7 +37,7 @@ var CharToPiece = map[rune]int{
 	'k': King,
 }
 
-var PieceToChar = map[int]rune{
+var PieceToChar = map[Piece]rune{
 	None:   ' ',
 	Pawn:   '♟',
 	Knight: '♞',
@@ -33,4 +45,22 @@ var PieceToChar = map[int]rune{
 	Rook:   '♜',
 	Queen:  '♛',
 	King:   '♚',
+}
+
+func Value(p Piece) Piece {
+	return Piece(math.Abs(float64(p)))
+}
+
+func Color(p Piece) Piece {
+	if p > 0 {
+		return White
+	} else if p < 0 {
+		return Black
+	} else {
+		return None
+	}
+}
+
+func IsColor(p, c Piece) bool {
+	return p*c > 0
 }

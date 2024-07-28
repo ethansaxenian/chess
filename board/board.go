@@ -2,6 +2,7 @@ package board
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 	"unicode"
 
@@ -18,48 +19,45 @@ const (
 
 const StartingFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
 
-var precomputedSquareToCoords = map[string][2]int{}
-
-func init() {
-	for i, f := range Files {
-		for j, r := range Ranks {
-			precomputedSquareToCoords[string(f)+string(r)] = [2]int{i + 1, j + 1}
-		}
-	}
+func SquareToCoords(square string) (int, int) {
+	f := int(square[0])
+	r, err := strconv.Atoi(string(square[1]))
+	assert.NilError(err, fmt.Sprintf("invalid square: %s", square))
+	assert.Assert(square[0] >= 'a' && square[0] <= 'h', fmt.Sprintf("SquareToCoords: %s", square))
+	return f, r
 }
 
-func SquareToCoords(square string) (int, int) {
-	coords, ok := precomputedSquareToCoords[square]
-	assert.Assert(ok, fmt.Sprintf("%s is not a valid square", square))
-
-	return coords[0], coords[1]
+func CoordsToSquare(f, r int) string {
+	assert.Assert(f >= 'a' && f <= 'h' && r >= 1 && r <= 8, fmt.Sprintf("CoordsToSquare: %d %d", f, r))
+	return string(rune(f)) + strconv.Itoa(r)
 }
 
 func squareToIndex(square string) int {
-	assert.Assert(len(square) == 2, fmt.Sprintf("invalid square: %s", square))
-
-	rank := strings.IndexByte(Ranks, square[1])
-	assert.Assert(rank != -1, fmt.Sprintf("invalid rank: %d", rank))
-
-	file := strings.IndexByte(Files, square[0])
-	assert.Assert(file != -1, fmt.Sprintf("invalid file: %d", file))
-
-	return rank*boardLength + file
+	file := int(square[0]) - 97
+	rank, err := strconv.Atoi(string(square[1]))
+	assert.NilError(err, fmt.Sprintf("invalid square: %s", square))
+	index := (rank-1)*boardLength + file
+	assert.Assert(index >= 0 && index < 64, fmt.Sprintf("squareToIndex: %s -> %d", square, index))
+	return index
 }
 
 func indexToSquare(index int) string {
-	return string(Files[index%8]) + string(Ranks[index/8])
+	f := rune(index%8 + 97)
+	r := index/8 + 1
+	assert.Assert(f >= 'a' && f <= 'h' && r >= 1 && r <= 8, fmt.Sprintf("indexToSquare: %d", index))
+
+	return string(f) + strconv.Itoa(r)
 }
 
-type chessboard [64]piece.Piece
+type Chessboard [64]piece.Piece
 
-func LoadFEN(fen string) chessboard {
+func LoadFEN(fen string) Chessboard {
 	piecePlacement := strings.Split(fen, " ")[0]
 
 	file := 0
 	rank := 7
 
-	var board chessboard
+	var board Chessboard
 
 	for _, char := range piecePlacement {
 		if char == '/' {
@@ -85,7 +83,7 @@ func LoadFEN(fen string) chessboard {
 	return board
 }
 
-func (b chessboard) Print() {
+func (b Chessboard) Print() {
 	whiteSquare := "\033[48;2;194;167;120m"
 	whitePiece := "\033[38;2;255;255;255m"
 
@@ -122,7 +120,7 @@ func (b chessboard) Print() {
 	fmt.Println("   a  b  c  d  e  f  g  h")
 }
 
-func (b *chessboard) MakeMove(src, dest string) {
+func (b *Chessboard) MakeMove(src, dest string) {
 	srcIndex := squareToIndex(src)
 	destIndex := squareToIndex(dest)
 
@@ -130,11 +128,11 @@ func (b *chessboard) MakeMove(src, dest string) {
 	b[srcIndex] = piece.None
 }
 
-func (b chessboard) Square(square string) piece.Piece {
+func (b Chessboard) Square(square string) piece.Piece {
 	return b[squareToIndex(square)]
 }
 
-func (b chessboard) Squares() map[string]piece.Piece {
+func (b Chessboard) Squares() map[string]piece.Piece {
 	squares := map[string]piece.Piece{}
 	for i, p := range b {
 		squares[indexToSquare(i)] = p

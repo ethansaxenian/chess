@@ -4,87 +4,34 @@ import (
 	"fmt"
 	"log/slog"
 	"math"
-	"strings"
 
 	"github.com/ethansaxenian/chess/assert"
 	"github.com/ethansaxenian/chess/board"
 	"github.com/ethansaxenian/chess/piece"
 )
 
-func validateMove(move string, state board.State) bool {
-	if len(move) != 4 {
+func validateMove(state board.State, src, target string) bool {
+	srcPiece := state.Board.Square(src)
+	targetPiece := state.Board.Square(target)
+
+	// src is my color
+	if !piece.IsColor(srcPiece, state.ActiveColor) {
 		return false
 	}
 
-	srcSquare := move[:2]
-	targetSquare := move[2:]
-
-	if !validateBounds(srcSquare) {
+	// target is not my color
+	if piece.IsColor(targetPiece, state.ActiveColor) {
 		return false
 	}
 
-	if !validateBounds(targetSquare) {
-		return false
-	}
-
-	srcPiece := state.Board.Square(srcSquare)
-	targetPiece := state.Board.Square(targetSquare)
-
-	if !validateSrc(srcPiece, state) {
-		return false
-	}
-
-	if !validateTarget(targetPiece, state) {
-		return false
-	}
-
-	if !validatePieceMovement(srcPiece, srcSquare, targetSquare) {
+	if !validatePieceMoveWithBoard(state.Board, srcPiece, src, target) {
 		return false
 	}
 
 	return true
 }
 
-func validateSrc(src piece.Piece, state board.State) bool {
-	// no piece on square
-	if src == piece.None {
-		return false
-	}
-
-	if !piece.IsColor(src, state.CurrColor) {
-		return false
-	}
-
-	return true
-}
-
-func validateTarget(target piece.Piece, state board.State) bool {
-	if piece.IsColor(target, state.CurrColor) {
-		return false
-	}
-
-	return true
-}
-
-func validateBounds(square string) bool {
-	if len(square) != 2 {
-		return false
-	}
-
-	rank := strings.IndexByte(board.Ranks, square[1])
-	if rank == -1 {
-		return false
-	}
-
-	file := strings.IndexByte(board.Files, square[0])
-	if file == -1 {
-		return false
-	}
-
-	return true
-}
-
-func validatePieceMovement(srcPiece piece.Piece, srcSquare, targetSquare string) bool {
+func validatePieceMove(srcPiece piece.Piece, srcSquare, targetSquare string) bool {
 	slog.Debug("piece info:", "piece", srcPiece, "src", srcSquare, "target", targetSquare)
 	switch piece.Value(srcPiece) {
 	case piece.Pawn:
@@ -102,19 +49,21 @@ func validatePieceMovement(srcPiece piece.Piece, srcSquare, targetSquare string)
 	default:
 		return false
 	}
-
 }
 
 func validatePawnMove(src, target string, color piece.Piece) bool {
-	// TODO: captures, en passant, promotions
+	// TODO: en passant, promotions
 	srcFile, srcRank := board.SquareToCoords(src)
 	targetFile, targetRank := board.SquareToCoords(target)
 
-	if srcFile != targetFile {
+	fileDiff := math.Abs(float64(srcFile - targetFile))
+	rankDiff := (targetRank - srcRank) * int(color)
+
+	if fileDiff > 1 {
+		return false
+	} else if fileDiff == 1 && rankDiff != 1 {
 		return false
 	}
-
-	rankDiff := (targetRank - srcRank) * int(color)
 
 	startingRank, ok := piece.StartingPawnRanks[piece.Pawn*color]
 	assert.Assert(ok, fmt.Sprintf("invalid piece color for pawn: %d", color))
@@ -189,4 +138,123 @@ func validateKingMove(src, target string) bool {
 	}
 
 	return true
+}
+
+func validatePieceMoveWithBoard(b board.Chessboard, srcPiece piece.Piece, src, target string) bool {
+	switch piece.Value(srcPiece) {
+	case piece.Pawn:
+		return validatePawnMoveWithBoard(b, src, target)
+	case piece.Knight:
+		return true
+	case piece.Bishop:
+		return validateBishopMoveWithBoard(b, src, target)
+	case piece.Rook:
+		return validateRookMoveWithBoard(b, src, target)
+	case piece.Queen:
+		return validateQueenMoveWithBoard(b, src, target)
+	case piece.King:
+		return true
+	default:
+		return false
+	}
+}
+
+func validatePawnMoveWithBoard(b board.Chessboard, src, target string) bool {
+	// TODO en passant
+	srcPiece := b.Square(src)
+	targetPiece := b.Square(target)
+
+	// diagonal pawn moves
+	if src[0] != target[0] && !piece.IsColor(targetPiece, piece.Color(srcPiece)*-1) {
+		return false
+	}
+
+	// can't capture forward
+	if src[0] == target[0] && targetPiece != piece.None {
+		return false
+	}
+
+	return true
+}
+
+func validateBishopMoveWithBoard(b board.Chessboard, src, target string) bool {
+	sf, sr := board.SquareToCoords(src)
+	tf, tr := board.SquareToCoords(target)
+
+	var df, dr int
+
+	if tf > sf {
+		df = 1
+	} else {
+		df = -1
+	}
+
+	if tr > sr {
+		dr = 1
+	} else {
+		dr = -1
+	}
+
+	srcPiece := b.Square(src)
+
+	for f, r := sf+df, sr+dr; f >= 'a' && f <= 'h' && r >= 1 && r <= 8; f, r = f+df, r+dr {
+		currPiece := b.Square(board.CoordsToSquare(f, r))
+
+		if f == tf && r == tr {
+			if currPiece == piece.None {
+				return true
+			} else if piece.IsColor(currPiece, srcPiece) {
+				return false
+			} else {
+				return true
+			}
+		} else if currPiece != piece.None {
+			return false
+		}
+
+	}
+
+	return false
+
+}
+
+func validateRookMoveWithBoard(b board.Chessboard, src, target string) bool {
+	sf, sr := board.SquareToCoords(src)
+	tf, tr := board.SquareToCoords(target)
+
+	var df, dr int
+
+	if sf > tf {
+		df = -1
+	} else if sf < tf {
+		df = 1
+	}
+
+	if sr > tr {
+		dr = -1
+	} else if sr < tr {
+		dr = 1
+	}
+
+	srcPiece := b.Square(src)
+
+	for f, r := sf+df, sr+dr; ; f, r = f+df, r+dr {
+		currPiece := b.Square(board.CoordsToSquare(f, r))
+
+		if f == tf && r == tr {
+			if currPiece == piece.None {
+				return true
+			} else if piece.IsColor(currPiece, srcPiece) {
+				return false
+			} else {
+				return true
+			}
+		} else if currPiece != piece.None {
+			return false
+		}
+	}
+}
+
+func validateQueenMoveWithBoard(b board.Chessboard, src, target string) bool {
+	return validateBishopMoveWithBoard(b, src, target) || validateRookMoveWithBoard(b, src, target)
 }

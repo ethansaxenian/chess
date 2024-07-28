@@ -19,3 +19,14 @@ func TestIndexToSquare(t *testing.T) {
 	assert.Equal(t, "a2", indexToSquare(8))
 	assert.Equal(t, "h8", indexToSquare(63))
 }
+
+func TestSquareToCoords(t *testing.T) {
+	f, r := SquareToCoords("a1")
+	assert.Equal(t, 97, f)
+	assert.Equal(t, 1, r)
+}
+
+func TestCoordsToSquare(t *testing.T) {
+	s := CoordsToSquare(97, 1)
+	assert.Equal(t, "a1", s)
+}

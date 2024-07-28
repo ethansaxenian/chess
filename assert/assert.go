@@ -7,3 +7,9 @@ func Assert(condition bool, msg string) {
 		log.Fatal(msg)
 	}
 }
+
+func NilError(err error, msg string) {
+	if err != nil {
+		log.Fatal(msg)
+	}
+}

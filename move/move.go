@@ -1,24 +1,27 @@
 package move
 
 import (
+	"github.com/ethansaxenian/chess/assert"
 	"github.com/ethansaxenian/chess/board"
 	"github.com/ethansaxenian/chess/piece"
 )
 
-var precomputedPieceMoves = map[piece.Piece]map[string]map[string]bool{}
+var precomputedPieceMoves = map[piece.Piece]map[string][]string{}
 
 func init() {
 	for _, p := range piece.AllPieces {
 		for _, c := range piece.AllColors {
-			pieceMap := map[string]map[string]bool{}
+			pieceMap := map[string][]string{}
 			for _, sf := range board.Files {
 				for _, sr := range board.Ranks {
 					src := string(sf) + string(sr)
-					pieceMap[src] = map[string]bool{}
+					assert.Assert(src != "e0", "foobar")
 					for _, tf := range board.Files {
 						for _, tr := range board.Ranks {
 							target := string(tf) + string(tr)
-							pieceMap[src][target] = validatePieceMovement(p*c, src, target)
+							if validatePieceMove(p*c, src, target) {
+								pieceMap[src] = append(pieceMap[src], target)
+							}
 						}
 					}
 				}
@@ -36,8 +39,8 @@ func GeneratePossibleMoves(state board.State) [][2]string {
 			continue
 		}
 
-		for target, valid := range precomputedPieceMoves[p][src] {
-			if valid && piece.IsColor(p, state.CurrColor) {
+		for _, target := range precomputedPieceMoves[p][src] {
+			if validateMove(state, src, target) {
 				moves = append(moves, [2]string{src, target})
 			}
 		}

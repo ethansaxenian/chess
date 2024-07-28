@@ -10,22 +10,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestValidateSquareValid(t *testing.T) {
-	assert.True(t, validateBounds("a1"))
-	assert.True(t, validateBounds("h8"))
-	assert.True(t, validateBounds("d4"))
-}
-
-func TestValidateSquareInvalid(t *testing.T) {
-	assert.False(t, validateBounds("a0"))
-	assert.False(t, validateBounds("h9"))
-	assert.False(t, validateBounds("i4"))
-	assert.False(t, validateBounds("1a"))
-	assert.False(t, validateBounds("a"))
-	assert.False(t, validateBounds(""))
-	assert.False(t, validateBounds("foo"))
-}
-
 var validKnightSquaresFromE4 = []string{"f6", "g5", "g3", "f2", "d2", "c3", "c5", "d6"}
 
 func TestValidateKnightValid(t *testing.T) {
@@ -50,6 +34,8 @@ func TestValidateWhitePawnValid(t *testing.T) {
 	assert.True(t, validatePawnMove("a2", "a4", piece.White))
 	assert.True(t, validatePawnMove("a3", "a4", piece.White))
 	assert.True(t, validatePawnMove("a7", "a8", piece.White))
+	assert.True(t, validatePawnMove("d2", "c3", piece.White))
+	assert.True(t, validatePawnMove("d2", "e3", piece.White))
 }
 
 func TestValidateWhitePawnInvalid(t *testing.T) {
@@ -57,6 +43,10 @@ func TestValidateWhitePawnInvalid(t *testing.T) {
 	assert.False(t, validatePawnMove("a2", "a2", piece.White))
 	assert.False(t, validatePawnMove("a2", "a5", piece.White))
 	assert.False(t, validatePawnMove("a3", "a5", piece.White))
+	assert.False(t, validatePawnMove("d2", "c4", piece.White))
+	assert.False(t, validatePawnMove("d2", "e4", piece.White))
+	assert.False(t, validatePawnMove("d2", "b3", piece.White))
+	assert.False(t, validatePawnMove("d2", "f3", piece.White))
 }
 
 func TestValidateBlackPawnValid(t *testing.T) {
@@ -150,9 +140,71 @@ func TestValidateQueenInvalid(t *testing.T) {
 func TestValidatePrecomputedMoves(t *testing.T) {
 	for p, moves := range precomputedPieceMoves {
 		for src, targetMoves := range moves {
-			for target, valid := range targetMoves {
-				assert.Equal(t, valid, validatePieceMovement(p, src, target), fmt.Sprintf("piece: %v, src: %v, target: %v, valid: %v", p, src, target, valid))
+			for _, target := range targetMoves {
+				assert.True(t, validatePieceMove(p, src, target), fmt.Sprintf("piece: %v, src: %v, target: %v", p, src, target))
 			}
 		}
 	}
+}
+
+func TestValidatePawnMoveWithBoardValid(t *testing.T) {
+	b := board.LoadFEN("8/8/8/3ppp2/3PPP2/8/8/8 w - - 0 1")
+	assert.True(t, validatePawnMoveWithBoard(b, "e4", "d5"), "e4 d5")
+	assert.True(t, validatePawnMoveWithBoard(b, "e4", "f5"), "e4 f5")
+	assert.True(t, validatePawnMoveWithBoard(b, "e5", "d4"), "e5 d4")
+	assert.True(t, validatePawnMoveWithBoard(b, "e5", "f4"), "e5 f4")
+}
+
+func TestValidatePawnMoveWithBoardInvalid(t *testing.T) {
+	b := board.LoadFEN("8/8/8/3ppp2/3PPP2/8/8/8 w - - 0 1")
+	assert.False(t, validatePawnMoveWithBoard(b, "e4", "e5"), "e4 e5")
+	assert.False(t, validatePawnMoveWithBoard(b, "d4", "c5"), "d4 c5")
+	assert.False(t, validatePawnMoveWithBoard(b, "e5", "e4"), "e5 e4")
+	assert.False(t, validatePawnMoveWithBoard(b, "d5", "c4"), "d5 c4")
+}
+
+func TestValidateBishopMoveWithBoardValid(t *testing.T) {
+	b := board.LoadFEN("8/1p6/6P1/8/4B3/3P4/2p5/8 w - - 0 1")
+	assert.True(t, validateBishopMoveWithBoard(b, "e4", "d5"), "e4 d5")
+	assert.True(t, validateBishopMoveWithBoard(b, "e4", "c6"), "e4 c6")
+	assert.True(t, validateBishopMoveWithBoard(b, "e4", "b7"), "e4 b7")
+	assert.True(t, validateBishopMoveWithBoard(b, "e4", "f3"), "e4 f3")
+	assert.True(t, validateBishopMoveWithBoard(b, "e4", "f5"), "e4 f5")
+	assert.True(t, validateBishopMoveWithBoard(b, "e4", "g2"), "e4 g2")
+	assert.True(t, validateBishopMoveWithBoard(b, "e4", "h1"), "e4 h1")
+}
+
+func TestValidateBishopMoveWithBoardInvalid(t *testing.T) {
+	b := board.LoadFEN("8/1p6/6P1/8/4B3/3P4/2p5/8 w - - 0 1")
+	assert.False(t, validateBishopMoveWithBoard(b, "e4", "g6"), "e4 g6")
+	assert.False(t, validateBishopMoveWithBoard(b, "e4", "h7"), "e4 h7")
+	assert.False(t, validateBishopMoveWithBoard(b, "e4", "a8"), "e4 a8")
+	assert.False(t, validateBishopMoveWithBoard(b, "e4", "d3"), "e4 d3")
+	assert.False(t, validateBishopMoveWithBoard(b, "e4", "c2"), "e4 c2")
+	assert.False(t, validateBishopMoveWithBoard(b, "e4", "b1"), "e4 b1")
+}
+
+func TestValidateRookMoveWithBoardValid(t *testing.T) {
+	b := board.LoadFEN("8/8/4P3/8/1Pp1R3/8/8/4p3 w - - 1 1")
+	assert.True(t, validateRookMoveWithBoard(b, "e4", "e5"), "e4 e5")
+	assert.True(t, validateRookMoveWithBoard(b, "e4", "d4"), "e4 d4")
+	assert.True(t, validateRookMoveWithBoard(b, "e4", "c4"), "e4 c4")
+	assert.True(t, validateRookMoveWithBoard(b, "e4", "f4"), "e4 f4")
+	assert.True(t, validateRookMoveWithBoard(b, "e4", "g4"), "e4 g4")
+	assert.True(t, validateRookMoveWithBoard(b, "e4", "h4"), "e4 h4")
+	assert.True(t, validateRookMoveWithBoard(b, "e4", "e3"), "e4 e3")
+	assert.True(t, validateRookMoveWithBoard(b, "e4", "e2"), "e4 e2")
+	assert.True(t, validateRookMoveWithBoard(b, "e4", "e1"), "e4 e1")
+}
+
+func TestValidateRookMoveWithBoardInvalid(t *testing.T) {
+	b := board.LoadFEN("8/8/4P3/8/1Pp1R3/8/8/4p3 w - - 1 1")
+	assert.False(t, validateRookMoveWithBoard(b, "e4", "b4"), "e4 b4")
+	assert.False(t, validateRookMoveWithBoard(b, "e4", "a4"), "e4 a4")
+	assert.False(t, validateRookMoveWithBoard(b, "e4", "e6"), "e4 e6")
+	assert.False(t, validateRookMoveWithBoard(b, "e4", "e7"), "e4 e7")
+	assert.False(t, validateRookMoveWithBoard(b, "e4", "e8"), "e4 e8")
+
+	b = board.LoadFEN("8/8/8/8/8/8/7P/7R w - - 1 1")
+	assert.False(t, validateRookMoveWithBoard(b, "h1", "h6"), "h1 h6")
 }

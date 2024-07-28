@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"slices"
+	"time"
 
 	"github.com/ethansaxenian/chess/assert"
 	"github.com/ethansaxenian/chess/board"
@@ -11,18 +12,21 @@ import (
 )
 
 func main() {
-	white := player.NewHumanPlayer("human")
-	black := player.NewRandoBot(player.WithSeed(10))
+	// white := player.NewHumanPlayer("human")
+	white := player.NewRandoBot()
+	black := player.NewRandoBot()
 	state := board.StartingState(white, black)
 
 	for {
 		state.Print()
 		possibleMoves := move.GeneratePossibleMoves(state)
 
-		src, target := state.CurrPlayer().GetMove(possibleMoves)
+		fmt.Println(possibleMoves)
+		src, target := state.ActivePlayer().GetMove(possibleMoves)
 		assert.Assert(slices.Contains(possibleMoves, [2]string{src, target}), fmt.Sprintf("%s,%s not in possibleMoves", src, target))
-		state.Board.MakeMove(src, target)
+		state.MakeMove(src, target)
 
 		state.NextTurn()
+		time.Sleep(time.Millisecond * 100)
 	}
 }

@@ -14,6 +14,8 @@ const (
 	King
 )
 
+var SlidingPieces = []Piece{Bishop, Rook, Queen}
+
 const (
 	White Piece = 1
 	Black Piece = -1
@@ -45,6 +47,16 @@ var PieceToChar = map[Piece]rune{
 	Rook:   '♜',
 	Queen:  '♛',
 	King:   '♚',
+}
+
+var PieceToRepr = map[Piece]string{
+	None:   "",
+	Pawn:   "",
+	Knight: "n",
+	Bishop: "b",
+	Rook:   "r",
+	Queen:  "q",
+	King:   "k",
 }
 
 func Value(p Piece) Piece {

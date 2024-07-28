@@ -1,6 +1,7 @@
-package board
+package game
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -29,4 +30,14 @@ func TestSquareToCoords(t *testing.T) {
 func TestCoordsToSquare(t *testing.T) {
 	s := CoordsToSquare(97, 1)
 	assert.Equal(t, "a1", s)
+}
+
+func TestBoardToFen(t *testing.T) {
+	fen := strings.Fields(StartingFEN)[0]
+	b := loadFEN(fen)
+	assert.Equal(t, fen, b.FEN())
+
+	b.MakeMove("e2", "e4")
+	newFen := "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR"
+	assert.Equal(t, newFen, b.FEN())
 }

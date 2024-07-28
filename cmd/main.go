@@ -6,22 +6,23 @@ import (
 	"time"
 
 	"github.com/ethansaxenian/chess/assert"
-	"github.com/ethansaxenian/chess/board"
+	"github.com/ethansaxenian/chess/game"
 	"github.com/ethansaxenian/chess/move"
 	"github.com/ethansaxenian/chess/player"
 )
 
 func main() {
 	// white := player.NewHumanPlayer("human")
+	// black := player.NewHumanPlayer("human")
 	white := player.NewRandoBot()
 	black := player.NewRandoBot()
-	state := board.StartingState(white, black)
+	state := game.StartingState(white, black)
 
 	for {
 		state.Print()
-		possibleMoves := move.GeneratePossibleMoves(state)
+		possibleMoves := move.GeneratePossibleMoves(*state)
 
-		fmt.Println(possibleMoves)
+		// fmt.Println(possibleMoves)
 		src, target := state.ActivePlayer().GetMove(possibleMoves)
 		assert.Assert(slices.Contains(possibleMoves, [2]string{src, target}), fmt.Sprintf("%s,%s not in possibleMoves", src, target))
 		state.MakeMove(src, target)

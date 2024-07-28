@@ -5,7 +5,7 @@ import (
 	"slices"
 	"testing"
 
-	"github.com/ethansaxenian/chess/board"
+	"github.com/ethansaxenian/chess/game"
 	"github.com/ethansaxenian/chess/piece"
 	"github.com/stretchr/testify/assert"
 )
@@ -19,8 +19,8 @@ func TestValidateKnightValid(t *testing.T) {
 }
 
 func TestValidateKnightInvalid(t *testing.T) {
-	for _, f := range board.Files {
-		for _, r := range board.Ranks {
+	for _, f := range game.Files {
+		for _, r := range game.Ranks {
 			target := string(f) + string(r)
 			if !slices.Contains(validKnightSquaresFromE4, target) {
 				assert.False(t, validateKnightMove("e4", target))
@@ -72,8 +72,8 @@ func TestValidateKingValid(t *testing.T) {
 }
 
 func TestValidateKingInvalid(t *testing.T) {
-	for _, f := range board.Files {
-		for _, r := range board.Ranks {
+	for _, f := range game.Files {
+		for _, r := range game.Ranks {
 			target := string(f) + string(r)
 			if !slices.Contains(validKingSquaresFromE4, target) {
 				assert.False(t, validateKingMove("e4", target), target)
@@ -91,8 +91,8 @@ func TestValidateBishopValid(t *testing.T) {
 }
 
 func TestValidateBishopInvalid(t *testing.T) {
-	for _, f := range board.Files {
-		for _, r := range board.Ranks {
+	for _, f := range game.Files {
+		for _, r := range game.Ranks {
 			target := string(f) + string(r)
 			if !slices.Contains(validBishopSquaresFromE4, target) {
 				assert.False(t, validateBishopMove("e4", target), target)
@@ -110,8 +110,8 @@ func TestValidateRookValid(t *testing.T) {
 }
 
 func TestValidateRookInvalid(t *testing.T) {
-	for _, f := range board.Files {
-		for _, r := range board.Ranks {
+	for _, f := range game.Files {
+		for _, r := range game.Ranks {
 			target := string(f) + string(r)
 			if !slices.Contains(validRookSquaresFromE4, target) {
 				assert.False(t, validateRookMove("e4", target), target)
@@ -127,8 +127,8 @@ func TestValidateQueenValid(t *testing.T) {
 }
 
 func TestValidateQueenInvalid(t *testing.T) {
-	for _, f := range board.Files {
-		for _, r := range board.Ranks {
+	for _, f := range game.Files {
+		for _, r := range game.Ranks {
 			target := string(f) + string(r)
 			if !slices.Contains(slices.Concat(validBishopSquaresFromE4, validRookSquaresFromE4), target) {
 				assert.False(t, validateQueenMove("e4", target), target)
@@ -147,64 +147,145 @@ func TestValidatePrecomputedMoves(t *testing.T) {
 	}
 }
 
-func TestValidatePawnMoveWithBoardValid(t *testing.T) {
-	b := board.LoadFEN("8/8/8/3ppp2/3PPP2/8/8/8 w - - 0 1")
-	assert.True(t, validatePawnMoveWithBoard(b, "e4", "d5"), "e4 d5")
-	assert.True(t, validatePawnMoveWithBoard(b, "e4", "f5"), "e4 f5")
-	assert.True(t, validatePawnMoveWithBoard(b, "e5", "d4"), "e5 d4")
-	assert.True(t, validatePawnMoveWithBoard(b, "e5", "f4"), "e5 f4")
+func TestValidatePawnMoveWithStateValid(t *testing.T) {
+	s := *game.NewTestState("8/8/8/3ppp2/3PPP2/8/8/8 w - - 0 1")
+	assert.True(t, validatePawnMoveWithState(s, "e4", "d5"), "e4 d5")
+	assert.True(t, validatePawnMoveWithState(s, "e4", "f5"), "e4 f5")
+	assert.True(t, validatePawnMoveWithState(s, "e5", "d4"), "e5 d4")
+	assert.True(t, validatePawnMoveWithState(s, "e5", "f4"), "e5 f4")
 }
 
-func TestValidatePawnMoveWithBoardInvalid(t *testing.T) {
-	b := board.LoadFEN("8/8/8/3ppp2/3PPP2/8/8/8 w - - 0 1")
-	assert.False(t, validatePawnMoveWithBoard(b, "e4", "e5"), "e4 e5")
-	assert.False(t, validatePawnMoveWithBoard(b, "d4", "c5"), "d4 c5")
-	assert.False(t, validatePawnMoveWithBoard(b, "e5", "e4"), "e5 e4")
-	assert.False(t, validatePawnMoveWithBoard(b, "d5", "c4"), "d5 c4")
+func TestValidatePawnMoveWithStateInvalid(t *testing.T) {
+	s := *game.NewTestState("8/8/8/3ppp2/3PPP2/8/8/8 w - - 0 1")
+	assert.False(t, validatePawnMoveWithState(s, "e4", "e5"), "e4 e5")
+	assert.False(t, validatePawnMoveWithState(s, "d4", "c5"), "d4 c5")
+	assert.False(t, validatePawnMoveWithState(s, "e5", "e4"), "e5 e4")
+	assert.False(t, validatePawnMoveWithState(s, "d5", "c4"), "d5 c4")
 }
 
-func TestValidateBishopMoveWithBoardValid(t *testing.T) {
-	b := board.LoadFEN("8/1p6/6P1/8/4B3/3P4/2p5/8 w - - 0 1")
-	assert.True(t, validateBishopMoveWithBoard(b, "e4", "d5"), "e4 d5")
-	assert.True(t, validateBishopMoveWithBoard(b, "e4", "c6"), "e4 c6")
-	assert.True(t, validateBishopMoveWithBoard(b, "e4", "b7"), "e4 b7")
-	assert.True(t, validateBishopMoveWithBoard(b, "e4", "f3"), "e4 f3")
-	assert.True(t, validateBishopMoveWithBoard(b, "e4", "f5"), "e4 f5")
-	assert.True(t, validateBishopMoveWithBoard(b, "e4", "g2"), "e4 g2")
-	assert.True(t, validateBishopMoveWithBoard(b, "e4", "h1"), "e4 h1")
+func TestValidateBishopMoveWithStateValid(t *testing.T) {
+	s := *game.NewTestState("8/1p6/6P1/8/4B3/3P4/2p5/8 w - - 0 1")
+	assert.True(t, validateBishopMoveWithState(s, "e4", "d5"), "e4 d5")
+	assert.True(t, validateBishopMoveWithState(s, "e4", "c6"), "e4 c6")
+	assert.True(t, validateBishopMoveWithState(s, "e4", "b7"), "e4 b7")
+	assert.True(t, validateBishopMoveWithState(s, "e4", "f3"), "e4 f3")
+	assert.True(t, validateBishopMoveWithState(s, "e4", "f5"), "e4 f5")
+	assert.True(t, validateBishopMoveWithState(s, "e4", "g2"), "e4 g2")
+	assert.True(t, validateBishopMoveWithState(s, "e4", "h1"), "e4 h1")
 }
 
-func TestValidateBishopMoveWithBoardInvalid(t *testing.T) {
-	b := board.LoadFEN("8/1p6/6P1/8/4B3/3P4/2p5/8 w - - 0 1")
-	assert.False(t, validateBishopMoveWithBoard(b, "e4", "g6"), "e4 g6")
-	assert.False(t, validateBishopMoveWithBoard(b, "e4", "h7"), "e4 h7")
-	assert.False(t, validateBishopMoveWithBoard(b, "e4", "a8"), "e4 a8")
-	assert.False(t, validateBishopMoveWithBoard(b, "e4", "d3"), "e4 d3")
-	assert.False(t, validateBishopMoveWithBoard(b, "e4", "c2"), "e4 c2")
-	assert.False(t, validateBishopMoveWithBoard(b, "e4", "b1"), "e4 b1")
+func TestValidateBishopMoveWithStateInvalid(t *testing.T) {
+	s := *game.NewTestState("8/1p6/6P1/8/4B3/3P4/2p5/8 w - - 0 1")
+	assert.False(t, validateBishopMoveWithState(s, "e4", "g6"), "e4 g6")
+	assert.False(t, validateBishopMoveWithState(s, "e4", "h7"), "e4 h7")
+	assert.False(t, validateBishopMoveWithState(s, "e4", "a8"), "e4 a8")
+	assert.False(t, validateBishopMoveWithState(s, "e4", "d3"), "e4 d3")
+	assert.False(t, validateBishopMoveWithState(s, "e4", "c2"), "e4 c2")
+	assert.False(t, validateBishopMoveWithState(s, "e4", "b1"), "e4 b1")
 }
 
-func TestValidateRookMoveWithBoardValid(t *testing.T) {
-	b := board.LoadFEN("8/8/4P3/8/1Pp1R3/8/8/4p3 w - - 1 1")
-	assert.True(t, validateRookMoveWithBoard(b, "e4", "e5"), "e4 e5")
-	assert.True(t, validateRookMoveWithBoard(b, "e4", "d4"), "e4 d4")
-	assert.True(t, validateRookMoveWithBoard(b, "e4", "c4"), "e4 c4")
-	assert.True(t, validateRookMoveWithBoard(b, "e4", "f4"), "e4 f4")
-	assert.True(t, validateRookMoveWithBoard(b, "e4", "g4"), "e4 g4")
-	assert.True(t, validateRookMoveWithBoard(b, "e4", "h4"), "e4 h4")
-	assert.True(t, validateRookMoveWithBoard(b, "e4", "e3"), "e4 e3")
-	assert.True(t, validateRookMoveWithBoard(b, "e4", "e2"), "e4 e2")
-	assert.True(t, validateRookMoveWithBoard(b, "e4", "e1"), "e4 e1")
+func TestValidateRookMoveWithStateValid(t *testing.T) {
+	s := *game.NewTestState("8/8/4P3/8/1Pp1R3/8/8/4p3 w - - 1 1")
+	assert.True(t, validateRookMoveWithState(s, "e4", "e5"), "e4 e5")
+	assert.True(t, validateRookMoveWithState(s, "e4", "d4"), "e4 d4")
+	assert.True(t, validateRookMoveWithState(s, "e4", "c4"), "e4 c4")
+	assert.True(t, validateRookMoveWithState(s, "e4", "f4"), "e4 f4")
+	assert.True(t, validateRookMoveWithState(s, "e4", "g4"), "e4 g4")
+	assert.True(t, validateRookMoveWithState(s, "e4", "h4"), "e4 h4")
+	assert.True(t, validateRookMoveWithState(s, "e4", "e3"), "e4 e3")
+	assert.True(t, validateRookMoveWithState(s, "e4", "e2"), "e4 e2")
+	assert.True(t, validateRookMoveWithState(s, "e4", "e1"), "e4 e1")
 }
 
-func TestValidateRookMoveWithBoardInvalid(t *testing.T) {
-	b := board.LoadFEN("8/8/4P3/8/1Pp1R3/8/8/4p3 w - - 1 1")
-	assert.False(t, validateRookMoveWithBoard(b, "e4", "b4"), "e4 b4")
-	assert.False(t, validateRookMoveWithBoard(b, "e4", "a4"), "e4 a4")
-	assert.False(t, validateRookMoveWithBoard(b, "e4", "e6"), "e4 e6")
-	assert.False(t, validateRookMoveWithBoard(b, "e4", "e7"), "e4 e7")
-	assert.False(t, validateRookMoveWithBoard(b, "e4", "e8"), "e4 e8")
+func TestValidateRookMoveWithStateInvalid(t *testing.T) {
+	s := *game.NewTestState("8/8/4P3/8/1Pp1R3/8/8/4p3 w - - 1 1")
+	assert.False(t, validateRookMoveWithState(s, "e4", "b4"), "e4 b4")
+	assert.False(t, validateRookMoveWithState(s, "e4", "a4"), "e4 a4")
+	assert.False(t, validateRookMoveWithState(s, "e4", "e6"), "e4 e6")
+	assert.False(t, validateRookMoveWithState(s, "e4", "e7"), "e4 e7")
+	assert.False(t, validateRookMoveWithState(s, "e4", "e8"), "e4 e8")
+}
 
-	b = board.LoadFEN("8/8/8/8/8/8/7P/7R w - - 1 1")
-	assert.False(t, validateRookMoveWithBoard(b, "h1", "h6"), "h1 h6")
+func TestValidateQueenMoveWithStateValid(t *testing.T) {
+	s := *game.NewTestState("p7/1P2P3/8/5p2/1Pp1Q2p/8/2P3P1/1P6 w - - 1 1")
+	assert.True(t, validateQueenMoveWithState(s, "e4", "d5"), "e4 d5")
+	assert.True(t, validateQueenMoveWithState(s, "e4", "c6"), "e4 c6")
+	assert.True(t, validateQueenMoveWithState(s, "e4", "e5"), "e4 e5")
+	assert.True(t, validateQueenMoveWithState(s, "e4", "e6"), "e4 e6")
+	assert.True(t, validateQueenMoveWithState(s, "e4", "f5"), "e4 f5")
+	assert.True(t, validateQueenMoveWithState(s, "e4", "f4"), "e4 f4")
+	assert.True(t, validateQueenMoveWithState(s, "e4", "g4"), "e4 g4")
+	assert.True(t, validateQueenMoveWithState(s, "e4", "h4"), "e4 h4")
+	assert.True(t, validateQueenMoveWithState(s, "e4", "f3"), "e4 f3")
+	assert.True(t, validateQueenMoveWithState(s, "e4", "e3"), "e4 e3")
+	assert.True(t, validateQueenMoveWithState(s, "e4", "e2"), "e4 e2")
+	assert.True(t, validateQueenMoveWithState(s, "e4", "e1"), "e4 e1")
+	assert.True(t, validateQueenMoveWithState(s, "e4", "d3"), "e4 d3")
+	assert.True(t, validateQueenMoveWithState(s, "e4", "d4"), "e4 d4")
+	assert.True(t, validateQueenMoveWithState(s, "e4", "c4"), "e4 c4")
+}
+
+func TestValidateQueenMoveWithStateInvalid(t *testing.T) {
+	s := *game.NewTestState("p7/1P2P3/8/5p2/1Pp1Q2p/8/2P3P1/1P6 w - - 1 1")
+	assert.False(t, validateQueenMoveWithState(s, "e4", "b7"), "e4 b7")
+	assert.False(t, validateQueenMoveWithState(s, "e4", "a8"), "e4 a8")
+	assert.False(t, validateQueenMoveWithState(s, "e4", "e7"), "e4 e7")
+	assert.False(t, validateQueenMoveWithState(s, "e4", "e8"), "e4 e8")
+	assert.False(t, validateQueenMoveWithState(s, "e4", "g6"), "e4 g6")
+	assert.False(t, validateQueenMoveWithState(s, "e4", "h7"), "e4 h7")
+	assert.False(t, validateQueenMoveWithState(s, "e4", "g2"), "e4 g2")
+	assert.False(t, validateQueenMoveWithState(s, "e4", "h1"), "e4 h1")
+	assert.False(t, validateQueenMoveWithState(s, "e4", "c2"), "e4 c2")
+	assert.False(t, validateQueenMoveWithState(s, "e4", "b1"), "e4 b1")
+	assert.False(t, validateQueenMoveWithState(s, "e4", "b4"), "e4 b4")
+	assert.False(t, validateQueenMoveWithState(s, "e4", "a4"), "e4 a4")
+}
+
+func TestValidatePawnMoveWithStateEnPassant(t *testing.T) {
+	s := *game.NewTestState("8/8/8/3Pp3/8/8/8/8 w - e6 0 1")
+	assert.Equal(t, "e6", s.EnPassantTarget)
+	assert.True(t, validatePawnMoveWithState(s, "d5", "e6"), "d5 e6")
+	assert.True(t, validatePawnMoveWithState(s, "d5", "d6"), "d5 d6")
+	assert.False(t, validatePawnMoveWithState(s, "d5", "c6"), "d5 c6")
+	s.EnPassantTarget = "-"
+	assert.False(t, validatePawnMoveWithState(s, "d5", "e6"), "d5 e6")
+	assert.True(t, validatePawnMoveWithState(s, "d5", "d6"), "d5 d6")
+	assert.False(t, validatePawnMoveWithState(s, "d5", "c6"), "d5 c6")
+
+	s = *game.NewTestState("8/8/4p3/3P4/8/8/8/8 w - e6 0 1")
+	assert.False(t, validatePawnMoveWithState(s, "d4", "e6"), "d4 e6")
+
+	s = *game.NewTestState("8/8/8/8/3Pp3/8/8/8 b - d3 0 1")
+	assert.Equal(t, "d3", s.EnPassantTarget)
+	assert.True(t, validatePawnMoveWithState(s, "e4", "d3"), "e4 d3")
+	assert.True(t, validatePawnMoveWithState(s, "e4", "e3"), "e4 e3")
+	assert.False(t, validatePawnMoveWithState(s, "e4", "f3"), "e4 f3")
+	s.EnPassantTarget = "-"
+	assert.False(t, validatePawnMoveWithState(s, "e4", "d3"), "e4 d3")
+	assert.True(t, validatePawnMoveWithState(s, "e4", "e3"), "e4 e3")
+	assert.False(t, validatePawnMoveWithState(s, "e4", "f3"), "e4 f3")
+}
+
+func TestValidatePawnMoveWithStateJumpOverPiece(t *testing.T) {
+	s := *game.NewTestState("8/8/8/8/2Pp4/Pp6/PPPP4/8 w - - 0 1")
+	assert.False(t, validatePawnMoveWithState(s, "a2", "a3"), "a2 a3")
+	assert.False(t, validatePawnMoveWithState(s, "a2", "a4"), "a2 a4")
+	assert.False(t, validatePawnMoveWithState(s, "b2", "b3"), "b2 b3")
+	assert.False(t, validatePawnMoveWithState(s, "b2", "b4"), "b2 b4")
+	assert.True(t, validatePawnMoveWithState(s, "c2", "c3"), "c2 c3")
+	assert.False(t, validatePawnMoveWithState(s, "c2", "c4"), "c2 c4")
+	assert.True(t, validatePawnMoveWithState(s, "d2", "d3"), "d2 d3")
+	assert.False(t, validatePawnMoveWithState(s, "d2", "d4"), "d2 d4")
+}
+
+func TestValidatePawnMoveWithStateMaxRanks(t *testing.T) {
+	s := *game.NewTestState("8/8/8/8/2Pp4/Pp6/PPPP4/8 w - - 0 1")
+	assert.False(t, validatePawnMoveWithState(s, "a2", "a3"), "a2 a3")
+	assert.False(t, validatePawnMoveWithState(s, "a2", "a4"), "a2 a4")
+	assert.False(t, validatePawnMoveWithState(s, "b2", "b3"), "b2 b3")
+	assert.False(t, validatePawnMoveWithState(s, "b2", "b4"), "b2 b4")
+	assert.True(t, validatePawnMoveWithState(s, "c2", "c3"), "c2 c3")
+	assert.False(t, validatePawnMoveWithState(s, "c2", "c4"), "c2 c4")
+	assert.True(t, validatePawnMoveWithState(s, "d2", "d3"), "d2 d3")
+	assert.False(t, validatePawnMoveWithState(s, "d2", "d4"), "d2 d4")
 }

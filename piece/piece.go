@@ -1,6 +1,11 @@
 package piece
 
-import "math"
+import (
+	"math"
+	"strings"
+
+	"github.com/ethansaxenian/chess/assert"
+)
 
 type Piece int
 
@@ -24,6 +29,11 @@ const (
 var StartingPawnRanks = map[Piece]int{
 	Pawn * White: 2,
 	Pawn * Black: 7,
+}
+
+var MaxPawnRank = map[Piece]int{
+	Pawn * White: 8,
+	Pawn * Black: 1,
 }
 
 var AllPieces = []Piece{Pawn, Knight, Bishop, Rook, Queen, King}
@@ -57,6 +67,24 @@ var PieceToRepr = map[Piece]string{
 	Rook:   "r",
 	Queen:  "q",
 	King:   "k",
+}
+
+func FENRepr(piece Piece) string {
+	var char string
+	switch v := Value(piece); v {
+	case Pawn:
+		char = "p"
+	case None:
+		assert.Raise("piece.None has no FEN repr")
+	default:
+		char = PieceToRepr[v]
+	}
+
+	if IsColor(piece, White) {
+		char = strings.ToUpper(char)
+	}
+
+	return char
 }
 
 func Value(p Piece) Piece {

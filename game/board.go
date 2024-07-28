@@ -1,9 +1,8 @@
-package board
+package game
 
 import (
 	"fmt"
 	"strconv"
-	"strings"
 	"unicode"
 
 	"github.com/ethansaxenian/chess/assert"
@@ -22,7 +21,7 @@ const StartingFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
 func SquareToCoords(square string) (int, int) {
 	f := int(square[0])
 	r, err := strconv.Atoi(string(square[1]))
-	assert.NilError(err, fmt.Sprintf("invalid square: %s", square))
+	assert.ErrIsNil(err, fmt.Sprintf("invalid square: %s", square))
 	assert.Assert(square[0] >= 'a' && square[0] <= 'h', fmt.Sprintf("SquareToCoords: %s", square))
 	return f, r
 }
@@ -32,10 +31,22 @@ func CoordsToSquare(f, r int) string {
 	return string(rune(f)) + strconv.Itoa(r)
 }
 
+func AddRank(square string, n int) string {
+	f, r := SquareToCoords(square)
+	r += n
+	return CoordsToSquare(f, r)
+}
+
+func AddFile(square string, n int) string {
+	f, r := SquareToCoords(square)
+	f += n
+	return CoordsToSquare(f, r)
+}
+
 func squareToIndex(square string) int {
 	file := int(square[0]) - 97
 	rank, err := strconv.Atoi(string(square[1]))
-	assert.NilError(err, fmt.Sprintf("invalid square: %s", square))
+	assert.ErrIsNil(err, fmt.Sprintf("invalid square: %s", square))
 	index := (rank-1)*boardLength + file
 	assert.Assert(index >= 0 && index < 64, fmt.Sprintf("squareToIndex: %s -> %d", square, index))
 	return index
@@ -51,8 +62,7 @@ func indexToSquare(index int) string {
 
 type Chessboard [64]piece.Piece
 
-func LoadFEN(fen string) Chessboard {
-	piecePlacement := strings.Split(fen, " ")[0]
+func loadFEN(piecePlacement string) Chessboard {
 
 	file := 0
 	rank := 7
@@ -81,6 +91,38 @@ func LoadFEN(fen string) Chessboard {
 	}
 
 	return board
+}
+
+func (b Chessboard) FEN() string {
+	var fen string
+
+	for r := 8; r >= 1; r-- {
+		var spaceCounter int
+		for f := 'a'; f <= 'h'; f++ {
+			p := b[squareToIndex(CoordsToSquare(int(f), r))]
+			if p == piece.None {
+				spaceCounter++
+			} else {
+				if spaceCounter > 0 {
+					fen += strconv.Itoa(spaceCounter)
+					spaceCounter = 0
+				}
+
+				fen += piece.FENRepr(p)
+			}
+		}
+
+		if spaceCounter > 0 {
+			fen += strconv.Itoa(spaceCounter)
+			spaceCounter = 0
+		}
+
+		if r != 1 {
+			fen += "/"
+		}
+	}
+
+	return fen
 }
 
 func (b Chessboard) Print() {

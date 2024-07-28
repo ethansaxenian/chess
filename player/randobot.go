@@ -3,6 +3,8 @@ package player
 import (
 	"math/rand"
 	"time"
+
+	"github.com/ethansaxenian/chess/piece"
 )
 
 type RandoBot struct {
@@ -40,4 +42,10 @@ func (r RandoBot) State() map[string]any {
 		"name": "RandoBot",
 		"seed": r.seed,
 	}
+}
+
+func (r RandoBot) ChoosePromotionPiece(square string) piece.Piece {
+	randomIndex := r.rand.Intn(len(piece.PossiblePromotions))
+	pick := piece.PossiblePromotions[randomIndex]
+	return pick
 }

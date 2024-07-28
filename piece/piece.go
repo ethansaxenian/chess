@@ -38,6 +38,7 @@ var MaxPawnRank = map[Piece]int{
 
 var AllPieces = []Piece{Pawn, Knight, Bishop, Rook, Queen, King}
 var AllColors = []Piece{White, Black}
+var PossiblePromotions = []Piece{Knight, Bishop, Rook, Queen}
 
 var CharToPiece = map[rune]Piece{
 	'_': None,

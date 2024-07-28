@@ -201,7 +201,8 @@ func (s *State) handleEnPassantCapture(m move) {
 
 func (s *State) handlePromotion(m move) {
 	if m.srcValue == piece.Pawn && m.targetRank == piece.MaxPawnRank[m.srcColor] {
-		s.nextBoard[squareToIndex(m.target)] = piece.Queen * m.srcColor
+		p := s.ActivePlayer().ChoosePromotionPiece(m.target)
+		s.nextBoard[squareToIndex(m.target)] = p * m.srcColor
 	}
 }
 

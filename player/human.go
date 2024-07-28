@@ -5,7 +5,10 @@ import (
 	"fmt"
 	"os"
 	"slices"
+	"strconv"
 	"strings"
+
+	"github.com/ethansaxenian/chess/piece"
 )
 
 type HumanPlayer struct {
@@ -36,4 +39,23 @@ func (h HumanPlayer) GetMove(validMoves [][2]string) (string, string) {
 
 func (h HumanPlayer) State() map[string]any {
 	return map[string]any{"name": h.name}
+}
+
+func (h HumanPlayer) ChoosePromotionPiece(square string) piece.Piece {
+	fmt.Printf("Promote %c on %s\n", piece.PieceToChar[piece.Pawn], square)
+	for i, p := range piece.PossiblePromotions {
+		fmt.Printf("%d: %c\n", i, piece.PieceToChar[p])
+	}
+	for {
+		input := getInput()
+
+		i, err := strconv.Atoi(input)
+		if err != nil {
+			continue
+		}
+
+		if i >= 0 && i < len(piece.PossiblePromotions) {
+			return piece.PossiblePromotions[i]
+		}
+	}
 }

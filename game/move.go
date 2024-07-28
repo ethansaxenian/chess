@@ -44,13 +44,14 @@ func newMove(s State, src, target string) move {
 }
 
 func (m move) String() string {
-	// srcPiece := piece.Value(b.Square(src))
-	// targetPiece := b.Square(target)
-	// repr := piece.PieceToRepr[srcPiece]
-	// if targetPiece != piece.None {
+	// repr := piece.PieceToRepr[m.srcValue]
+	// if m.targetPiece != piece.Empty {
+	// 	if m.srcValue == piece.Pawn {
+	// 		repr += string(m.srcFile)
+	// 	}
 	// 	repr += "x"
 	// }
-	// repr += target
+	// repr += m.target
 	//
 	// return repr
 	return m.src + m.target

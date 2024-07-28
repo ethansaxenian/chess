@@ -2,8 +2,8 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"slices"
-	"time"
 
 	"github.com/ethansaxenian/chess/assert"
 	"github.com/ethansaxenian/chess/game"
@@ -23,6 +23,10 @@ func main() {
 	for {
 		state.Print()
 		possibleMoves := move.GeneratePossibleMoves(*state)
+		if len(possibleMoves) == 0 {
+			fmt.Println("stalemate!")
+			os.Exit(0)
+		}
 
 		// fmt.Println(possibleMoves)
 		src, target := state.ActivePlayer().GetMove(possibleMoves)
@@ -30,6 +34,6 @@ func main() {
 		state.MakeMove(src, target)
 
 		state.NextTurn()
-		time.Sleep(time.Millisecond * 100)
+		// time.Sleep(time.Millisecond * 100)
 	}
 }

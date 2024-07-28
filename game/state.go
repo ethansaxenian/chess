@@ -15,12 +15,12 @@ const noEnPassantTarget = "-"
 
 type State struct {
 	Players         map[piece.Piece]player.Player
+	Castling        map[piece.Piece][2]bool
 	EnPassantTarget string
 	Moves           []move
 	Board           Chessboard
 	nextBoard       Chessboard
 	ActiveColor     piece.Piece
-	Castling        map[piece.Piece][2]bool
 	halfmoveClock   int
 	fullmoveNumber  int
 }
@@ -238,6 +238,7 @@ func (s *State) handleGameEnd(m move) {
 	if m.targetPiece == piece.King {
 		s.Print()
 		fmt.Printf("%s wins\n", s.ActivePlayerRepr())
+		fmt.Println(s.Moves)
 		os.Exit(0)
 	}
 }

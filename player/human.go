@@ -31,6 +31,10 @@ func (h HumanPlayer) GetMove(validMoves [][2]string) (string, string) {
 	for {
 		input := getInput()
 
+		if len(input) != 4 {
+			continue
+		}
+
 		if slices.Contains(validMoves, [2]string{input[:2], input[2:]}) {
 			return input[:2], input[2:]
 		}
@@ -58,4 +62,8 @@ func (h HumanPlayer) ChoosePromotionPiece(square string) piece.Piece {
 			return piece.PossiblePromotions[i]
 		}
 	}
+}
+
+func (h HumanPlayer) String() string {
+	return h.name
 }

@@ -1,6 +1,7 @@
 package player
 
 import (
+	"fmt"
 	"math/rand"
 	"time"
 
@@ -48,4 +49,8 @@ func (r RandoBot) ChoosePromotionPiece(square string) piece.Piece {
 	randomIndex := r.rand.Intn(len(piece.PossiblePromotions))
 	pick := piece.PossiblePromotions[randomIndex]
 	return pick
+}
+
+func (r RandoBot) String() string {
+	return fmt.Sprintf("RandoBot%d", r.seed)
 }

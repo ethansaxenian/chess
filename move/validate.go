@@ -2,7 +2,6 @@ package move
 
 import (
 	"fmt"
-	"log/slog"
 	"math"
 
 	"github.com/ethansaxenian/chess/assert"
@@ -32,7 +31,6 @@ func validateMove(state game.State, src, target string) bool {
 }
 
 func validatePieceMove(srcPiece piece.Piece, srcSquare, targetSquare string) bool {
-	slog.Debug("piece info:", "piece", srcPiece, "src", srcSquare, "target", targetSquare)
 	switch piece.Value(srcPiece) {
 	case piece.Pawn:
 		return validatePawnMove(srcSquare, targetSquare, piece.Color(srcPiece))
@@ -120,7 +118,6 @@ func validateQueenMove(src, target string) bool {
 }
 
 func validateKingMove(src, target string) bool {
-	// TODO: castling
 	srcFile, srcRank := game.SquareToCoords(src)
 	targetFile, targetRank := game.SquareToCoords(target)
 
@@ -132,7 +129,23 @@ func validateKingMove(src, target string) bool {
 		return false
 	}
 
-	if rankDiff > 1 || fileDiff > 1 {
+	if rankDiff > 1 {
+		return false
+	}
+
+	if fileDiff > 2 {
+		return false
+	}
+
+	if src != "e1" && src != "e8" && fileDiff > 1 {
+		return false
+	}
+
+	// castling possibilities
+	if src == "e1" && target != "c1" && target != "g1" && fileDiff > 1 {
+		return false
+	}
+	if src == "e8" && target != "c8" && target != "g8" && fileDiff > 1 {
 		return false
 	}
 
@@ -152,7 +165,7 @@ func validatePieceMoveWithBoard(s game.State, srcPiece piece.Piece, src, target 
 	case piece.Queen:
 		return validateQueenMoveWithState(s, src, target)
 	case piece.King:
-		return true
+		return validateKingMoveWithState(s, src, target)
 	default:
 		return false
 	}
@@ -167,10 +180,10 @@ func validatePawnMoveWithState(s game.State, src, target string) bool {
 	isEnPassantAttempt := s.EnPassantTarget == target
 	isOppositeColorPiece := piece.IsColor(targetPiece, srcColor*-1)
 	isDoubleMove := target[1]-src[1] == 2
-	jumpsOverPiece := s.Board.Square(game.AddRank(src, int(srcColor))) != piece.None
+	jumpsOverPiece := s.Board.Square(game.AddRank(src, int(srcColor))) != piece.Empty
 
 	if isCaptureAttempt {
-		if isEnPassantAttempt && targetPiece != piece.None {
+		if isEnPassantAttempt && targetPiece != piece.Empty {
 			return false
 		}
 
@@ -179,7 +192,7 @@ func validatePawnMoveWithState(s game.State, src, target string) bool {
 		}
 	}
 
-	if !isCaptureAttempt && targetPiece != piece.None {
+	if !isCaptureAttempt && targetPiece != piece.Empty {
 		return false
 	}
 
@@ -219,14 +232,14 @@ func validateBishopMoveWithState(s game.State, src, target string) bool {
 		currPiece := s.Board.Square(game.CoordsToSquare(f, r))
 
 		if f == tf && r == tr {
-			if currPiece == piece.None {
+			if currPiece == piece.Empty {
 				return true
 			} else if piece.IsColor(currPiece, srcPiece) {
 				return false
 			} else {
 				return true
 			}
-		} else if currPiece != piece.None {
+		} else if currPiece != piece.Empty {
 			return false
 		}
 
@@ -262,14 +275,14 @@ func validateRookMoveWithState(s game.State, src, target string) bool {
 		currPiece := s.Board.Square(game.CoordsToSquare(f, r))
 
 		if f == tf && r == tr {
-			if currPiece == piece.None {
+			if currPiece == piece.Empty {
 				return true
 			} else if piece.IsColor(currPiece, srcPiece) {
 				return false
 			} else {
 				return true
 			}
-		} else if currPiece != piece.None {
+		} else if currPiece != piece.Empty {
 			return false
 		}
 	}
@@ -277,4 +290,36 @@ func validateRookMoveWithState(s game.State, src, target string) bool {
 
 func validateQueenMoveWithState(s game.State, src, target string) bool {
 	return validateBishopMoveWithState(s, src, target) || validateRookMoveWithState(s, src, target)
+}
+
+func validateKingMoveWithState(s game.State, src, target string) bool {
+	color := piece.Color(s.Board.Square(src))
+
+	startingSquare := piece.StartingKingSquares[color]
+	castlingSquares := piece.CastlingSquares[color]
+	intermediateSquares := piece.CastlingIntermediateSquares[color]
+	castlingRights := s.Castling[color]
+
+	if src == startingSquare {
+		for i := range []int{0, 1} {
+			// not trying to castle
+			if target != castlingSquares[i] {
+				continue
+			}
+
+			// can't castle
+			if !castlingRights[i] {
+				return false
+			}
+
+			// blocking pieces
+			for _, square := range intermediateSquares[i] {
+				if s.Board.Square(square) != piece.Empty {
+					return false
+				}
+			}
+		}
+	}
+
+	return true
 }

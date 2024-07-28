@@ -35,7 +35,7 @@ func GeneratePossibleMoves(state game.State) [][2]string {
 	moves := [][2]string{}
 
 	for src, p := range state.Board.Squares() {
-		if p == piece.None {
+		if p == piece.Empty {
 			continue
 		}
 

@@ -100,7 +100,7 @@ func (b Chessboard) FEN() string {
 		var spaceCounter int
 		for f := 'a'; f <= 'h'; f++ {
 			p := b[squareToIndex(CoordsToSquare(int(f), r))]
-			if p == piece.None {
+			if p == piece.Empty {
 				spaceCounter++
 			} else {
 				if spaceCounter > 0 {
@@ -167,7 +167,7 @@ func (b *Chessboard) MakeMove(src, dest string) {
 	destIndex := squareToIndex(dest)
 
 	b[destIndex] = b[srcIndex]
-	b[srcIndex] = piece.None
+	b[srcIndex] = piece.Empty
 }
 
 func (b Chessboard) Square(square string) piece.Piece {

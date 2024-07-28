@@ -10,7 +10,7 @@ import (
 type Piece int
 
 const (
-	None Piece = iota
+	Empty Piece = iota
 	Pawn
 	Knight
 	Bishop
@@ -41,7 +41,7 @@ var AllColors = []Piece{White, Black}
 var PossiblePromotions = []Piece{Knight, Bishop, Rook, Queen}
 
 var CharToPiece = map[rune]Piece{
-	'_': None,
+	'_': Empty,
 	'p': Pawn,
 	'n': Knight,
 	'b': Bishop,
@@ -51,7 +51,7 @@ var CharToPiece = map[rune]Piece{
 }
 
 var PieceToChar = map[Piece]rune{
-	None:   ' ',
+	Empty:  ' ',
 	Pawn:   '♟',
 	Knight: '♞',
 	Bishop: '♝',
@@ -61,7 +61,7 @@ var PieceToChar = map[Piece]rune{
 }
 
 var PieceToRepr = map[Piece]string{
-	None:   "",
+	Empty:  "",
 	Pawn:   "",
 	Knight: "n",
 	Bishop: "b",
@@ -70,12 +70,42 @@ var PieceToRepr = map[Piece]string{
 	King:   "k",
 }
 
+var ColorToRepr = map[Piece]string{
+	White: "white",
+	Black: "black",
+}
+
+var StartingKingSquares = map[Piece]string{
+	White: "e1",
+	Black: "e8",
+}
+
+var StartingRookSquares = map[Piece][2]string{
+	White: {"h1", "a1"},
+	Black: {"h8", "a8"},
+}
+
+var CastlingSquares = map[Piece][2]string{
+	White: {"g1", "c1"},
+	Black: {"g8", "c8"},
+}
+
+var CastlingIntermediateSquares = map[Piece][2][]string{
+	White: {{"f1", "g1"}, {"d1", "c1", "b1"}},
+	Black: {{"f8", "g8"}, {"d8", "c8", "b8"}},
+}
+
+var RookCastlingSquares = map[Piece][2]string{
+	White: {"f1", "d1"},
+	Black: {"f8", "d8"},
+}
+
 func FENRepr(piece Piece) string {
 	var char string
 	switch v := Value(piece); v {
 	case Pawn:
 		char = "p"
-	case None:
+	case Empty:
 		assert.Raise("piece.None has no FEN repr")
 	default:
 		char = PieceToRepr[v]
@@ -98,7 +128,7 @@ func Color(p Piece) Piece {
 	} else if p < 0 {
 		return Black
 	} else {
-		return None
+		return Empty
 	}
 }
 

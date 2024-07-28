@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"slices"
+	"time"
 
 	"github.com/ethansaxenian/chess/assert"
 	"github.com/ethansaxenian/chess/game"
@@ -11,11 +12,13 @@ import (
 )
 
 func main() {
-	white := player.NewHumanPlayer("human")
+	// white := player.NewHumanPlayer("human")
 	// black := player.NewHumanPlayer("human")
-	// white := player.NewRandoBot()
+	white := player.NewRandoBot()
 	black := player.NewRandoBot()
+
 	state := game.StartingState(white, black)
+	// state.LoadFEN("r3k2r/8/8/8/8/8/8/R3KB1R w KQkq - 0 1")
 
 	for {
 		state.Print()
@@ -27,6 +30,6 @@ func main() {
 		state.MakeMove(src, target)
 
 		state.NextTurn()
-		// time.Sleep(time.Millisecond * 100)
+		time.Sleep(time.Millisecond * 100)
 	}
 }

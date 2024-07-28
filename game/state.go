@@ -2,7 +2,7 @@ package game
 
 import (
 	"fmt"
-	"log"
+	"os"
 	"strconv"
 	"strings"
 
@@ -20,20 +20,24 @@ type State struct {
 	Board           Chessboard
 	nextBoard       Chessboard
 	ActiveColor     piece.Piece
-	whiteCastling   [2]bool
-	blackCastling   [2]bool
+	Castling        map[piece.Piece][2]bool
 	halfmoveClock   int
 	fullmoveNumber  int
 }
 
 func StartingState(white, black player.Player) *State {
-	return LoadFEN(StartingFEN, white, black)
+	s := &State{Players: map[piece.Piece]player.Player{piece.White: white, piece.Black: black}}
+
+	s.LoadFEN(StartingFEN)
+
+	return s
 }
 
-func LoadFEN(fen string, white, black player.Player) *State {
+func (s *State) LoadFEN(fen string) {
 	fenFields := strings.Fields(fen)
 
-	b := loadFEN(fenFields[0])
+	s.Board = loadFEN(fenFields[0])
+	s.nextBoard = s.Board
 
 	var activeColor piece.Piece
 	switch fenFields[1] {
@@ -44,6 +48,7 @@ func LoadFEN(fen string, white, black player.Player) *State {
 	default:
 		assert.Raise(fmt.Sprintf("invalid FEN active color: %s", fen))
 	}
+	s.ActiveColor = activeColor
 
 	whiteCastling := [2]bool{}
 	blackCastling := [2]bool{}
@@ -63,31 +68,23 @@ func LoadFEN(fen string, white, black player.Player) *State {
 			assert.Raise(fmt.Sprintf("invalid FEN castling rights: %s", fen))
 		}
 	}
+	s.Castling = map[piece.Piece][2]bool{
+		piece.White: whiteCastling,
+		piece.Black: blackCastling,
+	}
 
-	enPassantTarget := fenFields[3]
+	s.EnPassantTarget = fenFields[3]
 
 	halfmoveClock, err := strconv.Atoi(fenFields[4])
 	assert.ErrIsNil(err, fmt.Sprintf("invalid FEN halfmove clock: %s", fen))
+	s.halfmoveClock = halfmoveClock
+
 	fullmoveNumber, err := strconv.Atoi(fenFields[5])
 	assert.ErrIsNil(err, fmt.Sprintf("invalid FEN fullmove clock: %s", fen))
-
-	s := &State{
-		Board:           b,
-		nextBoard:       b,
-		Players:         map[piece.Piece]player.Player{piece.White: white, piece.Black: black},
-		ActiveColor:     activeColor,
-		Moves:           []move{},
-		EnPassantTarget: enPassantTarget,
-		whiteCastling:   whiteCastling,
-		blackCastling:   blackCastling,
-		halfmoveClock:   halfmoveClock,
-		fullmoveNumber:  fullmoveNumber,
-	}
+	s.fullmoveNumber = fullmoveNumber
 
 	assert.AddContext("FEN", s.FEN())
 	assert.AddContext("moves", s.Moves)
-
-	return s
 }
 
 func (s State) FEN() string {
@@ -101,16 +98,16 @@ func (s State) FEN() string {
 	}
 
 	var castling string
-	if s.whiteCastling[0] {
+	if s.Castling[piece.White][0] {
 		castling += "K"
 	}
-	if s.whiteCastling[1] {
+	if s.Castling[piece.White][1] {
 		castling += "Q"
 	}
-	if s.blackCastling[0] {
+	if s.Castling[piece.Black][0] {
 		castling += "k"
 	}
-	if s.blackCastling[1] {
+	if s.Castling[piece.Black][1] {
 		castling += "q"
 	}
 	if castling == "" {
@@ -139,16 +136,8 @@ func (s State) ActivePlayer() player.Player {
 	return s.Players[s.ActiveColor]
 }
 
-func (s State) PlayerRepr() string {
-	switch s.ActiveColor {
-	case piece.White:
-		return "white"
-	case piece.Black:
-		return "black"
-	default:
-		log.Fatalf("s.Player must be %d or %d", piece.White, piece.Black)
-		return ""
-	}
+func (s State) ActivePlayerRepr() string {
+	return fmt.Sprintf("%s (%s)", s.ActivePlayer(), piece.ColorToRepr[s.ActiveColor])
 }
 
 func clearScreen() {
@@ -167,7 +156,7 @@ func playerStateMsg(p player.Player) []any {
 func (s State) Print() {
 	clearScreen()
 	s.Board.Print()
-	fmt.Println(s)
+	// fmt.Println(s)
 }
 
 func (s *State) handleEnPassantAvailable(m move) {
@@ -193,7 +182,7 @@ func (s *State) handleEnPassantCapture(m move) {
 			fmt.Sprintf("handleEnPassantCapture: invalid capture: %s %s", m.src, m.target),
 		)
 
-		s.nextBoard[squareToIndex(capturedSquare)] = piece.None
+		s.nextBoard[squareToIndex(capturedSquare)] = piece.Empty
 		assert.AddContext("FEN", s.FEN())
 		assert.AddContext("moves", s.Moves)
 	}
@@ -203,6 +192,53 @@ func (s *State) handlePromotion(m move) {
 	if m.srcValue == piece.Pawn && m.targetRank == piece.MaxPawnRank[m.srcColor] {
 		p := s.ActivePlayer().ChoosePromotionPiece(m.target)
 		s.nextBoard[squareToIndex(m.target)] = p * m.srcColor
+	}
+}
+
+func (s *State) handleUpdateCastlingRights(m move) {
+	assert.AddContext("move", m)
+
+	// rook movement
+	for color, startingSquares := range piece.StartingRookSquares {
+		castlingRights, ok := s.Castling[color]
+		assert.Assert(ok, fmt.Sprintf("invalid castling rights: color %d not found: %v", color, s.Castling))
+
+		for i, square := range startingSquares {
+			if s.nextBoard.Square(square) != piece.Rook*color {
+				castlingRights[i] = false
+			}
+		}
+
+		s.Castling[color] = castlingRights
+	}
+
+	// king movement
+	if m.srcValue == piece.King {
+		s.Castling[m.srcColor] = [2]bool{false, false}
+	}
+}
+
+func (s *State) handleCastle(m move) {
+	// castling occurs
+	if m.srcValue == piece.King && m.src == piece.StartingKingSquares[m.srcColor] {
+
+		for i, castlingTarget := range piece.CastlingSquares[m.srcColor] {
+			if m.target == castlingTarget {
+				rookSrc := piece.StartingRookSquares[m.srcColor][i]
+				rookTarget := piece.RookCastlingSquares[m.srcColor][i]
+				assert.Assert(s.Board.Square(rookSrc) == piece.Rook*m.srcColor, "no rook found when castling")
+				s.nextBoard.MakeMove(rookSrc, rookTarget)
+			}
+		}
+
+	}
+}
+
+func (s *State) handleGameEnd(m move) {
+	if m.targetPiece == piece.King {
+		s.Print()
+		fmt.Printf("%s wins\n", s.ActivePlayerRepr())
+		os.Exit(0)
 	}
 }
 
@@ -216,11 +252,14 @@ func (s *State) MakeMove(src, target string) {
 	s.handleEnPassantCapture(m)
 	s.handleEnPassantAvailable(m)
 	s.nextBoard.MakeMove(m.src, m.target)
+	s.handleCastle(m)
+	s.handleUpdateCastlingRights(m)
 	s.handlePromotion(m)
 	s.Board = s.nextBoard
 	if piece.IsColor(s.ActiveColor, piece.Black) {
 		s.fullmoveNumber++
 	}
+	s.handleGameEnd(m)
 
 	assert.AddContext("FEN", s.FEN())
 	assert.AddContext("moves", s.Moves)

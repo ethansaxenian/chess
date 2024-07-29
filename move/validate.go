@@ -24,7 +24,7 @@ func validateMove(state game.State, src, target string) bool {
 		return false
 	}
 
-	if !validatePieceMoveWithBoard(state, srcPiece, src, target) {
+	if !validatePieceMoveWithState(state, srcPiece, src, target) {
 		return false
 	}
 
@@ -153,7 +153,7 @@ func validateKingMove(src, target string) bool {
 	return true
 }
 
-func validatePieceMoveWithBoard(s game.State, srcPiece piece.Piece, src, target string) bool {
+func validatePieceMoveWithState(s game.State, srcPiece piece.Piece, src, target string) bool {
 	switch piece.Value(srcPiece) {
 	case piece.Pawn:
 		return validatePawnMoveWithState(s, src, target)

@@ -1,4 +1,4 @@
-package game
+package board
 
 import (
 	"strings"
@@ -8,10 +8,10 @@ import (
 )
 
 func TestSquareToIndex(t *testing.T) {
-	assert.Equal(t, 0, squareToIndex("a1"))
-	assert.Equal(t, 1, squareToIndex("b1"))
-	assert.Equal(t, 8, squareToIndex("a2"))
-	assert.Equal(t, 63, squareToIndex("h8"))
+	assert.Equal(t, 0, SquareToIndex("a1"))
+	assert.Equal(t, 1, SquareToIndex("b1"))
+	assert.Equal(t, 8, SquareToIndex("a2"))
+	assert.Equal(t, 63, SquareToIndex("h8"))
 }
 
 func TestIndexToSquare(t *testing.T) {
@@ -34,7 +34,7 @@ func TestCoordsToSquare(t *testing.T) {
 
 func TestBoardToFen(t *testing.T) {
 	fen := strings.Fields(StartingFEN)[0]
-	b := loadFEN(fen)
+	b := LoadFEN(fen)
 	assert.Equal(t, fen, b.FEN())
 
 	b.MakeMove("e2", "e4")

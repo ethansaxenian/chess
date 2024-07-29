@@ -5,6 +5,7 @@ import (
 	"math"
 
 	"github.com/ethansaxenian/chess/assert"
+	"github.com/ethansaxenian/chess/board"
 	"github.com/ethansaxenian/chess/game"
 	"github.com/ethansaxenian/chess/piece"
 )
@@ -50,8 +51,8 @@ func validatePieceMove(srcPiece piece.Piece, srcSquare, targetSquare string) boo
 }
 
 func validatePawnMove(src, target string, color piece.Piece) bool {
-	srcFile, srcRank := game.SquareToCoords(src)
-	targetFile, targetRank := game.SquareToCoords(target)
+	srcFile, srcRank := board.SquareToCoords(src)
+	targetFile, targetRank := board.SquareToCoords(target)
 
 	fileDiff := math.Abs(float64(srcFile - targetFile))
 	rankDiff := (targetRank - srcRank) * int(color)
@@ -75,8 +76,8 @@ func validatePawnMove(src, target string, color piece.Piece) bool {
 }
 
 func validateKnightMove(src, target string) bool {
-	srcFile, srcRank := game.SquareToCoords(src)
-	targetFile, targetRank := game.SquareToCoords(target)
+	srcFile, srcRank := board.SquareToCoords(src)
+	targetFile, targetRank := board.SquareToCoords(target)
 
 	rankDiff := math.Abs(float64(targetRank - srcRank))
 	fileDiff := math.Abs(float64(targetFile - srcFile))
@@ -89,8 +90,8 @@ func validateKnightMove(src, target string) bool {
 }
 
 func validateBishopMove(src, target string) bool {
-	srcFile, srcRank := game.SquareToCoords(src)
-	targetFile, targetRank := game.SquareToCoords(target)
+	srcFile, srcRank := board.SquareToCoords(src)
+	targetFile, targetRank := board.SquareToCoords(target)
 
 	rankDiff := math.Abs(float64(targetRank - srcRank))
 	fileDiff := math.Abs(float64(targetFile - srcFile))
@@ -107,8 +108,8 @@ func validateBishopMove(src, target string) bool {
 }
 
 func validateRookMove(src, target string) bool {
-	srcFile, srcRank := game.SquareToCoords(src)
-	targetFile, targetRank := game.SquareToCoords(target)
+	srcFile, srcRank := board.SquareToCoords(src)
+	targetFile, targetRank := board.SquareToCoords(target)
 
 	return (srcRank == targetRank) != (srcFile == targetFile)
 }
@@ -118,8 +119,8 @@ func validateQueenMove(src, target string) bool {
 }
 
 func validateKingMove(src, target string) bool {
-	srcFile, srcRank := game.SquareToCoords(src)
-	targetFile, targetRank := game.SquareToCoords(target)
+	srcFile, srcRank := board.SquareToCoords(src)
+	targetFile, targetRank := board.SquareToCoords(target)
 
 	rankDiff := math.Abs(float64(targetRank - srcRank))
 	fileDiff := math.Abs(float64(targetFile - srcFile))
@@ -180,7 +181,7 @@ func validatePawnMoveWithState(s game.State, src, target string) bool {
 	isEnPassantAttempt := s.EnPassantTarget == target
 	isOppositeColorPiece := piece.IsColor(targetPiece, srcColor*-1)
 	isDoubleMove := target[1]-src[1] == 2
-	jumpsOverPiece := s.Board.Square(game.AddRank(src, int(srcColor))) != piece.Empty
+	jumpsOverPiece := s.Board.Square(board.AddRank(src, int(srcColor))) != piece.Empty
 
 	if isCaptureAttempt {
 		if isEnPassantAttempt && targetPiece != piece.Empty {
@@ -204,8 +205,8 @@ func validatePawnMoveWithState(s game.State, src, target string) bool {
 }
 
 func validateBishopMoveWithState(s game.State, src, target string) bool {
-	sf, sr := game.SquareToCoords(src)
-	tf, tr := game.SquareToCoords(target)
+	sf, sr := board.SquareToCoords(src)
+	tf, tr := board.SquareToCoords(target)
 
 	if sf == tf || sr == tr {
 		return false
@@ -229,7 +230,7 @@ func validateBishopMoveWithState(s game.State, src, target string) bool {
 
 	for f, r := sf+df, sr+dr; ; f, r = f+df, r+dr {
 		assert.Assert(f >= 'a' && f <= 'h' && r >= 1 && r <= 8, fmt.Sprintf("%s%s: %d/%d", src, target, df, dr))
-		currPiece := s.Board.Square(game.CoordsToSquare(f, r))
+		currPiece := s.Board.Square(board.CoordsToSquare(f, r))
 
 		if f == tf && r == tr {
 			if currPiece == piece.Empty {
@@ -248,8 +249,8 @@ func validateBishopMoveWithState(s game.State, src, target string) bool {
 }
 
 func validateRookMoveWithState(s game.State, src, target string) bool {
-	sf, sr := game.SquareToCoords(src)
-	tf, tr := game.SquareToCoords(target)
+	sf, sr := board.SquareToCoords(src)
+	tf, tr := board.SquareToCoords(target)
 
 	if sf != tf && sr != tr {
 		return false
@@ -272,7 +273,7 @@ func validateRookMoveWithState(s game.State, src, target string) bool {
 	srcPiece := s.Board.Square(src)
 
 	for f, r := sf+df, sr+dr; ; f, r = f+df, r+dr {
-		currPiece := s.Board.Square(game.CoordsToSquare(f, r))
+		currPiece := s.Board.Square(board.CoordsToSquare(f, r))
 
 		if f == tf && r == tr {
 			if currPiece == piece.Empty {

@@ -5,6 +5,7 @@ import (
 	"slices"
 	"testing"
 
+	"github.com/ethansaxenian/chess/board"
 	"github.com/ethansaxenian/chess/game"
 	"github.com/ethansaxenian/chess/piece"
 	"github.com/stretchr/testify/assert"
@@ -19,8 +20,8 @@ func TestValidateKnightValid(t *testing.T) {
 }
 
 func TestValidateKnightInvalid(t *testing.T) {
-	for _, f := range game.Files {
-		for _, r := range game.Ranks {
+	for _, f := range board.Files {
+		for _, r := range board.Ranks {
 			target := string(f) + string(r)
 			if !slices.Contains(validKnightSquaresFromE4, target) {
 				assert.False(t, validateKnightMove("e4", target))
@@ -77,8 +78,8 @@ func TestValidateKingValid(t *testing.T) {
 }
 
 func TestValidateKingInvalid(t *testing.T) {
-	for _, f := range game.Files {
-		for _, r := range game.Ranks {
+	for _, f := range board.Files {
+		for _, r := range board.Ranks {
 			target := string(f) + string(r)
 			if !slices.Contains(validKingSquaresFromE4, target) {
 				assert.False(t, validateKingMove("e4", target), target)
@@ -96,8 +97,8 @@ func TestValidateBishopValid(t *testing.T) {
 }
 
 func TestValidateBishopInvalid(t *testing.T) {
-	for _, f := range game.Files {
-		for _, r := range game.Ranks {
+	for _, f := range board.Files {
+		for _, r := range board.Ranks {
 			target := string(f) + string(r)
 			if !slices.Contains(validBishopSquaresFromE4, target) {
 				assert.False(t, validateBishopMove("e4", target), target)
@@ -115,8 +116,8 @@ func TestValidateRookValid(t *testing.T) {
 }
 
 func TestValidateRookInvalid(t *testing.T) {
-	for _, f := range game.Files {
-		for _, r := range game.Ranks {
+	for _, f := range board.Files {
+		for _, r := range board.Ranks {
 			target := string(f) + string(r)
 			if !slices.Contains(validRookSquaresFromE4, target) {
 				assert.False(t, validateRookMove("e4", target), target)
@@ -132,8 +133,8 @@ func TestValidateQueenValid(t *testing.T) {
 }
 
 func TestValidateQueenInvalid(t *testing.T) {
-	for _, f := range game.Files {
-		for _, r := range game.Ranks {
+	for _, f := range board.Files {
+		for _, r := range board.Ranks {
 			target := string(f) + string(r)
 			if !slices.Contains(slices.Concat(validBishopSquaresFromE4, validRookSquaresFromE4), target) {
 				assert.False(t, validateQueenMove("e4", target), target)

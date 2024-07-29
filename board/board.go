@@ -1,4 +1,4 @@
-package game
+package board
 
 import (
 	"fmt"
@@ -43,7 +43,7 @@ func AddFile(square string, n int) string {
 	return CoordsToSquare(f, r)
 }
 
-func squareToIndex(square string) int {
+func SquareToIndex(square string) int {
 	file := int(square[0]) - 97
 	rank, err := strconv.Atoi(string(square[1]))
 	assert.ErrIsNil(err, fmt.Sprintf("invalid square: %s", square))
@@ -62,7 +62,7 @@ func indexToSquare(index int) string {
 
 type Chessboard [64]piece.Piece
 
-func loadFEN(piecePlacement string) Chessboard {
+func LoadFEN(piecePlacement string) Chessboard {
 
 	file := 0
 	rank := 7
@@ -99,7 +99,7 @@ func (b Chessboard) FEN() string {
 	for r := 8; r >= 1; r-- {
 		var spaceCounter int
 		for f := 'a'; f <= 'h'; f++ {
-			p := b[squareToIndex(CoordsToSquare(int(f), r))]
+			p := b[SquareToIndex(CoordsToSquare(int(f), r))]
 			if p == piece.Empty {
 				spaceCounter++
 			} else {
@@ -163,15 +163,15 @@ func (b Chessboard) Print() {
 }
 
 func (b *Chessboard) MakeMove(src, dest string) {
-	srcIndex := squareToIndex(src)
-	destIndex := squareToIndex(dest)
+	srcIndex := SquareToIndex(src)
+	destIndex := SquareToIndex(dest)
 
 	b[destIndex] = b[srcIndex]
 	b[srcIndex] = piece.Empty
 }
 
 func (b Chessboard) Square(square string) piece.Piece {
-	return b[squareToIndex(square)]
+	return b[SquareToIndex(square)]
 }
 
 func (b Chessboard) Squares() map[string]piece.Piece {

@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/ethansaxenian/chess/assert"
+	"github.com/ethansaxenian/chess/board"
 	"github.com/ethansaxenian/chess/piece"
 	"github.com/ethansaxenian/chess/player"
 )
@@ -18,8 +19,8 @@ type State struct {
 	Castling        map[piece.Piece][2]bool
 	EnPassantTarget string
 	Moves           []move
-	Board           Chessboard
-	nextBoard       Chessboard
+	Board           board.Chessboard
+	nextBoard       board.Chessboard
 	ActiveColor     piece.Piece
 	halfmoveClock   int
 	fullmoveNumber  int
@@ -28,7 +29,7 @@ type State struct {
 func StartingState(white, black player.Player) *State {
 	s := &State{Players: map[piece.Piece]player.Player{piece.White: white, piece.Black: black}}
 
-	s.LoadFEN(StartingFEN)
+	s.LoadFEN(board.StartingFEN)
 
 	return s
 }
@@ -36,7 +37,7 @@ func StartingState(white, black player.Player) *State {
 func (s *State) LoadFEN(fen string) {
 	fenFields := strings.Fields(fen)
 
-	s.Board = loadFEN(fenFields[0])
+	s.Board = board.LoadFEN(fenFields[0])
 	s.nextBoard = s.Board
 
 	var activeColor piece.Piece
@@ -163,7 +164,7 @@ func (s *State) handleEnPassantAvailable(m move) {
 	isDoubleMove := int(m.targetRank-m.srcRank)*int(m.srcColor) == 2
 
 	if m.srcValue == piece.Pawn && isDoubleMove {
-		enPassantSquare := CoordsToSquare(int(m.targetFile), m.targetRank-int(m.srcColor))
+		enPassantSquare := board.CoordsToSquare(int(m.targetFile), m.targetRank-int(m.srcColor))
 		s.EnPassantTarget = enPassantSquare
 	} else {
 		s.EnPassantTarget = noEnPassantTarget
@@ -174,7 +175,7 @@ func (s *State) handleEnPassantAvailable(m move) {
 
 func (s *State) handleEnPassantCapture(m move) {
 	if m.srcValue == piece.Pawn && m.target == s.EnPassantTarget {
-		capturedSquare := AddRank(m.target, -1*int(m.srcColor))
+		capturedSquare := board.AddRank(m.target, -1*int(m.srcColor))
 		capturedPiece := s.Board.Square(capturedSquare)
 
 		assert.Assert(
@@ -182,7 +183,7 @@ func (s *State) handleEnPassantCapture(m move) {
 			fmt.Sprintf("handleEnPassantCapture: invalid capture: %s %s", m.src, m.target),
 		)
 
-		s.nextBoard[squareToIndex(capturedSquare)] = piece.Empty
+		s.nextBoard[board.SquareToIndex(capturedSquare)] = piece.Empty
 		assert.AddContext("FEN", s.FEN())
 		assert.AddContext("moves", s.Moves)
 	}
@@ -191,7 +192,7 @@ func (s *State) handleEnPassantCapture(m move) {
 func (s *State) handlePromotion(m move) {
 	if m.srcValue == piece.Pawn && m.targetRank == piece.MaxPawnRank[m.srcColor] {
 		p := s.ActivePlayer().ChoosePromotionPiece(m.target)
-		s.nextBoard[squareToIndex(m.target)] = p * m.srcColor
+		s.nextBoard[board.SquareToIndex(m.target)] = p * m.srcColor
 	}
 }
 

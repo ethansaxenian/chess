@@ -4,12 +4,13 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/ethansaxenian/chess/board"
 	"github.com/ethansaxenian/chess/piece"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestHandleEnPassantAvailable(t *testing.T) {
-	s := NewTestStateFromFEN(StartingFEN)
+	s := NewTestStateFromFEN(board.StartingFEN)
 	s.handleEnPassantAvailable(newMove(*s, "e2", "e4"))
 	assert.Equal(t, "e3", s.EnPassantTarget)
 
@@ -33,9 +34,9 @@ func TestHandleEnPassantCapture(t *testing.T) {
 }
 
 func TestLoadFen(t *testing.T) {
-	s := NewTestStateFromFEN(StartingFEN)
+	s := NewTestStateFromFEN(board.StartingFEN)
 
-	assert.Equal(t, strings.Fields(StartingFEN)[0], s.Board.FEN())
+	assert.Equal(t, strings.Fields(board.StartingFEN)[0], s.Board.FEN())
 	assert.Equal(t, piece.White, s.ActiveColor)
 	assert.Equal(t, [2]bool{true, true}, s.Castling[piece.White])
 	assert.Equal(t, [2]bool{true, true}, s.Castling[piece.Black])
@@ -45,8 +46,8 @@ func TestLoadFen(t *testing.T) {
 }
 
 func TestToFen(t *testing.T) {
-	s := NewTestStateFromFEN(StartingFEN)
-	assert.Equal(t, StartingFEN, s.FEN())
+	s := NewTestStateFromFEN(board.StartingFEN)
+	assert.Equal(t, board.StartingFEN, s.FEN())
 
 	fen := "4k2r/6r1/8/8/8/8/3R4/R3K3 w Qk - 0 1"
 	s = NewTestStateFromFEN(fen)

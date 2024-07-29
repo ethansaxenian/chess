@@ -8,6 +8,7 @@ import (
 	"github.com/ethansaxenian/chess/assert"
 	"github.com/ethansaxenian/chess/game"
 	"github.com/ethansaxenian/chess/move"
+	"github.com/ethansaxenian/chess/piece"
 	"github.com/ethansaxenian/chess/player"
 )
 
@@ -18,13 +19,33 @@ func main() {
 	black := player.NewRandoBot()
 
 	state := game.StartingState(white, black)
-	// state.LoadFEN("r3k2r/8/8/8/8/8/8/R3KB1R w KQkq - 0 1")
+	// state.LoadFEN("8/8/8/4k3/8/4K3/8/8 w - - 0 1")
 
 	for {
 		state.Print()
 		possibleMoves := move.GeneratePossibleMoves(*state)
 		if len(possibleMoves) == 0 {
-			fmt.Println("stalemate!")
+			fmt.Println(state.ActivePlayerRepr(), "to play")
+			state.ActiveColor *= -1
+
+			var checkmate bool
+			for _, m := range move.GeneratePossibleMoves(*state) {
+				if state.Board.Square(m[1]) == piece.King*state.ActiveColor*-1 {
+					checkmate = true
+					break
+				}
+			}
+			if checkmate {
+				fmt.Println("checkmate!")
+			} else {
+				fmt.Println("draw!")
+			}
+
+			os.Exit(0)
+		}
+
+		if state.HalfmoveClock == 100 {
+			fmt.Println("draw!")
 			os.Exit(0)
 		}
 

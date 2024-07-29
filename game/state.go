@@ -2,7 +2,6 @@ package game
 
 import (
 	"fmt"
-	"os"
 	"strconv"
 	"strings"
 
@@ -22,8 +21,27 @@ type State struct {
 	Board           board.Chessboard
 	nextBoard       board.Chessboard
 	ActiveColor     piece.Piece
-	halfmoveClock   int
-	fullmoveNumber  int
+	HalfmoveClock   int
+	FullmoveNumber  int
+}
+
+func (s State) DeepCopy() *State {
+	n := &State{Players: make(map[piece.Piece]player.Player), Castling: make(map[piece.Piece][2]bool)}
+	for color, player := range s.Players {
+		n.Players[color] = player
+	}
+	for color, castlingRights := range s.Castling {
+		n.Castling[color] = castlingRights
+	}
+	n.EnPassantTarget = s.EnPassantTarget
+	n.Moves = append(n.Moves, s.Moves...)
+	n.Board = s.Board
+	n.nextBoard = s.nextBoard
+	n.ActiveColor = s.ActiveColor
+	n.HalfmoveClock = s.HalfmoveClock
+	n.FullmoveNumber = s.FullmoveNumber
+
+	return n
 }
 
 func StartingState(white, black player.Player) *State {
@@ -78,11 +96,11 @@ func (s *State) LoadFEN(fen string) {
 
 	halfmoveClock, err := strconv.Atoi(fenFields[4])
 	assert.ErrIsNil(err, fmt.Sprintf("invalid FEN halfmove clock: %s", fen))
-	s.halfmoveClock = halfmoveClock
+	s.HalfmoveClock = halfmoveClock
 
 	fullmoveNumber, err := strconv.Atoi(fenFields[5])
 	assert.ErrIsNil(err, fmt.Sprintf("invalid FEN fullmove clock: %s", fen))
-	s.fullmoveNumber = fullmoveNumber
+	s.FullmoveNumber = fullmoveNumber
 
 	assert.AddContext("FEN", s.FEN())
 	assert.AddContext("moves", s.Moves)
@@ -117,8 +135,8 @@ func (s State) FEN() string {
 
 	fen = append(fen, castling)
 	fen = append(fen, s.EnPassantTarget)
-	fen = append(fen, strconv.Itoa(s.halfmoveClock))
-	fen = append(fen, strconv.Itoa(s.fullmoveNumber))
+	fen = append(fen, strconv.Itoa(s.HalfmoveClock))
+	fen = append(fen, strconv.Itoa(s.FullmoveNumber))
 
 	return strings.Join(fen, " ")
 }
@@ -235,13 +253,7 @@ func (s *State) handleCastle(m move) {
 	}
 }
 
-func (s *State) handleGameEnd(m move) {
-	if m.targetPiece == piece.King {
-		s.Print()
-		fmt.Printf("%s wins\n", s.ActivePlayerRepr())
-		fmt.Println(s.Moves)
-		os.Exit(0)
-	}
+func (s *State) handleHalfmoveClock() {
 }
 
 func (s *State) MakeMove(src, target string) {
@@ -249,6 +261,8 @@ func (s *State) MakeMove(src, target string) {
 	assert.AddContext("FEN", s.FEN())
 	assert.AddContext("moves", s.Moves)
 	assert.AddContext("move", m)
+
+	isCapture := s.Board.Square(target) != piece.Empty
 
 	s.Moves = append(s.Moves, m)
 	s.handleEnPassantCapture(m)
@@ -259,9 +273,13 @@ func (s *State) MakeMove(src, target string) {
 	s.handlePromotion(m)
 	s.Board = s.nextBoard
 	if piece.IsColor(s.ActiveColor, piece.Black) {
-		s.fullmoveNumber++
+		s.FullmoveNumber++
 	}
-	s.handleGameEnd(m)
+	if piece.Value(m.srcPiece) != piece.Pawn && !isCapture {
+		s.HalfmoveClock++
+	} else {
+		s.HalfmoveClock = 0
+	}
 
 	assert.AddContext("FEN", s.FEN())
 	assert.AddContext("moves", s.Moves)

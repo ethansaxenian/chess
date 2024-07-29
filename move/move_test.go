@@ -167,6 +167,9 @@ func TestValidatePawnMoveWithStateInvalid(t *testing.T) {
 	assert.False(t, validatePawnMoveWithState(s, "d4", "c5"), "d4 c5")
 	assert.False(t, validatePawnMoveWithState(s, "e5", "e4"), "e5 e4")
 	assert.False(t, validatePawnMoveWithState(s, "d5", "c4"), "d5 c4")
+
+	s.LoadFEN("8/p7/n7/8/8/8/8/8 b - - 0 1")
+	assert.False(t, validatePawnMoveWithState(s, "a7", "a5"), "a7 a5")
 }
 
 func TestValidateBishopMoveWithStateValid(t *testing.T) {
@@ -333,4 +336,85 @@ func TestValidateKingMoveWithStateCastlingInvalidBlockingPieces(t *testing.T) {
 	s = *game.NewTestStateFromFEN("rn2k2r/8/8/8/8/8/8/RN2K2R w KQkq - 0 1")
 	assert.False(t, validateKingMoveWithState(s, "e1", "c1"), "e1 c1")
 	assert.False(t, validateKingMoveWithState(s, "e8", "c8"), "e8 c8")
+}
+
+func TestGenerateMovesDoesntChangeState(t *testing.T) {
+	fen := "rnbqkbnr/p1ppp1pp/1p6/5p2/2P5/P7/1P1PPPPP/RNBQKBNR w Kkq f6 0 3"
+	s := *game.NewTestStateFromFEN(fen)
+	GeneratePossibleMoves(s)
+	assert.Equal(t, fen, s.FEN())
+}
+
+func TestGeneratePossibleMoves(t *testing.T) {
+	tests := map[string]struct {
+		fen           string
+		possibleMoves [][2]string
+	}{
+		"block check": {
+			fen:           "3pkp2/3p1p2/2n5/4Q3/8/8/8/8 b - - 0 1",
+			possibleMoves: [][2]string{{"c6", "e5"}, {"c6", "e7"}},
+		},
+		"move into check": {
+			fen:           "7k/Q7/8/8/8/8/8/8 b - - 0 1",
+			possibleMoves: [][2]string{{"h8", "g8"}},
+		},
+		"checkmate": {
+			fen:           "R6k/Q7/8/8/8/8/8/8 b - - 0 1",
+			possibleMoves: [][2]string{},
+		},
+		"pin": {
+			fen:           "Q5pk/8/8/8/8/8/8/6R1 b - - 0 1",
+			possibleMoves: [][2]string{{"h8", "h7"}},
+		},
+		"stalemate": {
+			fen:           "Q5pk/R7/8/8/8/8/8/8 b - - 0 1",
+			possibleMoves: [][2]string{},
+		},
+		"a": {
+			fen:           "2R1qk2/1Q6/8/8/8/8/8/8 b - - 1 37",
+			possibleMoves: [][2]string{{"e8", "c8"}, {"e8", "d8"}, {"f8", "g8"}},
+		},
+	}
+
+	for name, test := range tests {
+		t.Run(name, func(t *testing.T) {
+			s := *game.NewTestStateFromFEN(test.fen)
+			moves := GeneratePossibleMoves(s)
+			assert.Len(t, moves, len(test.possibleMoves))
+			for _, m := range test.possibleMoves {
+				assert.Contains(t, moves, m)
+			}
+		})
+	}
+}
+
+func TestGeneratePossibleMovesNotIn(t *testing.T) {
+	tests := map[string]struct {
+		fen              string
+		notPossibleMoves [][2]string
+	}{
+		"a": {
+			fen:              "r1R2k1r/nQ6/P4ppp/P2Pqp1n/3BP3/1N5P/3bK1P1/5BR1 b - - 0 36",
+			notPossibleMoves: [][2]string{{"e8", "e5"}},
+		},
+		"b": {
+			fen:              "r1bqk2r/p1p2p1p/n3p1pn/1p1p2bQ/1P2P3/N2P3P/PRP2PP1/2B1KBNR w Kkq - 0 1",
+			notPossibleMoves: [][2]string{{"a7", "a5"}},
+		},
+		"c": {
+			fen:              "rR1qkb1r/3ppp2/7n/1b1n1Ppp/5B2/2PP2PN/4PK1P/1N1Q1B1R w q - 1 15",
+			notPossibleMoves: [][2]string{{"d8", "c7"}},
+		},
+	}
+
+	for name, test := range tests {
+		t.Run(name, func(t *testing.T) {
+			s := *game.NewTestStateFromFEN(test.fen)
+			moves := GeneratePossibleMoves(s)
+			fmt.Println(moves)
+			for _, m := range test.notPossibleMoves {
+				assert.NotContains(t, moves, m)
+			}
+		})
+	}
 }

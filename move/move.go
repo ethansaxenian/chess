@@ -39,28 +39,22 @@ func GeneratePossibleMoves(state game.State) [][2]string {
 	moves := [][2]string{}
 
 	for _, m := range generateTmpMoves(state) {
-		if !resultsInCheck(state, m) {
+		state.NextTurn()
+		state.MakeMove(m[0], m[1])
+
+		var capturedKing bool
+		for _, nextMove := range generateTmpMoves(state) {
+			if state.Board.Square(nextMove[1]) == piece.King*state.ActiveColor*-1 {
+				capturedKing = true
+			}
+		}
+		if !capturedKing {
 			moves = append(moves, m)
 		}
+		state.Undo()
 	}
 
 	return moves
-}
-
-func resultsInCheck(state game.State, m [2]string) bool {
-	tmpState := state.DeepCopy()
-	tmpState.ActiveColor = state.ActiveColor * -1
-	tmpState.MakeMove(m[0], m[1])
-
-	var capturedKing bool
-	for _, nextMove := range generateTmpMoves(*tmpState) {
-		if tmpState.Board.Square(nextMove[1]) == piece.King*state.ActiveColor {
-			capturedKing = true
-			break
-		}
-	}
-
-	return capturedKing
 }
 
 func generateTmpMoves(state game.State) [][2]string {
@@ -251,7 +245,7 @@ func validatePawnMoveWithState(s game.State, src, target string) bool {
 	isCaptureAttempt := src[0] != target[0]
 	isEnPassantAttempt := s.EnPassantTarget == target
 	isOppositeColorPiece := piece.IsColor(targetPiece, srcColor*-1)
-	isDoubleMove := target[1]-src[1] == 2
+	isDoubleMove := int(target[1])-int(src[1]) == 2*int(srcColor)
 	jumpsOverPiece := s.Board.Square(board.AddRank(src, int(srcColor))) != piece.Empty
 
 	if isCaptureAttempt {

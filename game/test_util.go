@@ -18,8 +18,7 @@ func (t testPlayer) ChoosePromotionPiece(square string) piece.Piece {
 }
 
 func NewTestStateFromFEN(fen string) *State {
-	s := StartingState(testPlayer{}, testPlayer{})
-	s.LoadFEN(fen)
+	s := StartingStateFromFEN(fen, testPlayer{}, testPlayer{})
 
 	return s
 }

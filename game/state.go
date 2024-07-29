@@ -18,6 +18,7 @@ type State struct {
 	Castling        map[piece.Piece][2]bool
 	EnPassantTarget string
 	Moves           []move
+	fens            []string
 	Board           board.Chessboard
 	nextBoard       board.Chessboard
 	ActiveColor     piece.Piece
@@ -45,13 +46,32 @@ func (s State) DeepCopy() *State {
 }
 
 func StartingState(white, black player.Player) *State {
-	s := &State{Players: map[piece.Piece]player.Player{piece.White: white, piece.Black: black}}
+	fen := board.StartingFEN
 
-	s.LoadFEN(board.StartingFEN)
+	s := &State{
+		Players: map[piece.Piece]player.Player{
+			piece.White: white,
+			piece.Black: black,
+		},
+	}
+
+	s.LoadFEN(fen)
 
 	return s
 }
 
+func StartingStateFromFEN(fen string, white, black player.Player) *State {
+	s := &State{
+		Players: map[piece.Piece]player.Player{
+			piece.White: white,
+			piece.Black: black,
+		},
+	}
+
+	s.LoadFEN(fen)
+
+	return s
+}
 func (s *State) LoadFEN(fen string) {
 	fenFields := strings.Fields(fen)
 
@@ -101,6 +121,8 @@ func (s *State) LoadFEN(fen string) {
 	fullmoveNumber, err := strconv.Atoi(fenFields[5])
 	assert.ErrIsNil(err, fmt.Sprintf("invalid FEN fullmove clock: %s", fen))
 	s.FullmoveNumber = fullmoveNumber
+
+	s.fens = append(s.fens, fen)
 
 	assert.AddContext("FEN", s.FEN())
 	assert.AddContext("moves", s.Moves)
@@ -173,7 +195,7 @@ func playerStateMsg(p player.Player) []any {
 }
 
 func (s State) Print() {
-	clearScreen()
+	// clearScreen()
 	s.Board.Print()
 	// fmt.Println(s)
 }
@@ -253,9 +275,6 @@ func (s *State) handleCastle(m move) {
 	}
 }
 
-func (s *State) handleHalfmoveClock() {
-}
-
 func (s *State) MakeMove(src, target string) {
 	m := newMove(*s, src, target)
 	assert.AddContext("FEN", s.FEN())
@@ -272,16 +291,32 @@ func (s *State) MakeMove(src, target string) {
 	s.handleUpdateCastlingRights(m)
 	s.handlePromotion(m)
 	s.Board = s.nextBoard
+
 	if piece.IsColor(s.ActiveColor, piece.Black) {
 		s.FullmoveNumber++
 	}
+
 	if piece.Value(m.srcPiece) != piece.Pawn && !isCapture {
 		s.HalfmoveClock++
 	} else {
 		s.HalfmoveClock = 0
 	}
 
+	s.fens = append(s.fens, s.FEN())
+
 	assert.AddContext("FEN", s.FEN())
 	assert.AddContext("moves", s.Moves)
 	assert.DeleteContext("move")
+}
+
+func (s *State) Undo() {
+	assert.Assert(len(s.fens) > 1, fmt.Sprintf("cannot undo move? there are %d fens", len(s.fens)))
+
+	// remove the last TWO fens (current turn and previous turn)
+	prevFEN := s.fens[len(s.fens)-2]
+	s.fens = s.fens[:len(s.fens)-2]
+	s.Moves = s.Moves[:len(s.Moves)-1]
+
+	// this will add prevFEN back to s.fens
+	s.LoadFEN(prevFEN)
 }

@@ -3,6 +3,7 @@ package move
 import (
 	"fmt"
 	"math"
+	"sort"
 
 	"github.com/ethansaxenian/chess/assert"
 	"github.com/ethansaxenian/chess/board"
@@ -54,6 +55,12 @@ func GeneratePossibleMoves(state game.State) [][2]string {
 		state.Undo()
 	}
 
+	sort.Slice(moves, func(i, j int) bool {
+		if moves[i][0] == moves[j][0] {
+			return moves[i][1] < moves[j][1]
+		}
+		return moves[i][0] < moves[j][0]
+	})
 	return moves
 }
 

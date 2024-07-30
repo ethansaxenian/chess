@@ -195,7 +195,7 @@ func playerStateMsg(p player.Player) []any {
 }
 
 func (s State) Print() {
-	// clearScreen()
+	clearScreen()
 	s.Board.Print()
 	// fmt.Println(s)
 }

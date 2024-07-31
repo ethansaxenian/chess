@@ -1,4 +1,4 @@
-package game
+package state
 
 import (
 	"fmt"
@@ -7,6 +7,7 @@ import (
 
 	"github.com/ethansaxenian/chess/assert"
 	"github.com/ethansaxenian/chess/board"
+	"github.com/ethansaxenian/chess/move"
 	"github.com/ethansaxenian/chess/piece"
 	"github.com/ethansaxenian/chess/player"
 )
@@ -17,7 +18,7 @@ type State struct {
 	Players         map[piece.Piece]player.Player
 	Castling        map[piece.Piece][2]bool
 	EnPassantTarget string
-	Moves           []move
+	Moves           []move.Move
 	fens            []string
 	Board           board.Chessboard
 	nextBoard       board.Chessboard
@@ -190,14 +191,14 @@ func playerStateMsg(p player.Player) []any {
 func (s State) Print() {
 	clearScreen()
 	s.Board.Print()
-	// fmt.Println(s)
+	fmt.Println(s)
 }
 
-func (s *State) handleEnPassantAvailable(m move) {
-	isDoubleMove := int(m.targetRank-m.srcRank)*int(m.srcColor) == 2
+func (s *State) handleEnPassantAvailable(m move.Move) {
+	isDoubleMove := int(m.TargetRank()-m.SourceRank())*int(piece.Color(s.Board.Square(m.Source))) == 2
 
-	if m.srcValue == piece.Pawn && isDoubleMove {
-		enPassantSquare := board.CoordsToSquare(int(m.targetFile), m.targetRank-int(m.srcColor))
+	if piece.Value(s.Board.Square(m.Source)) == piece.Pawn && isDoubleMove {
+		enPassantSquare := board.CoordsToSquare(int(m.TargetFile()), m.TargetRank()-int(piece.Color(s.Board.Square(m.Source))))
 		s.EnPassantTarget = enPassantSquare
 	} else {
 		s.EnPassantTarget = noEnPassantTarget
@@ -206,14 +207,14 @@ func (s *State) handleEnPassantAvailable(m move) {
 	assert.AddContext("moves", s.Moves)
 }
 
-func (s *State) handleEnPassantCapture(m move) {
-	if m.srcValue == piece.Pawn && m.target == s.EnPassantTarget {
-		capturedSquare := board.AddRank(m.target, -1*int(m.srcColor))
+func (s *State) handleEnPassantCapture(m move.Move) {
+	if piece.Value(s.Board.Square(m.Source)) == piece.Pawn && m.Target == s.EnPassantTarget {
+		capturedSquare := board.AddRank(m.Target, -1*int(piece.Color(s.Board.Square(m.Source))))
 		capturedPiece := s.Board.Square(capturedSquare)
 
 		assert.Assert(
-			piece.Value(capturedPiece) == piece.Pawn && piece.IsColor(capturedPiece, m.srcColor*-1),
-			fmt.Sprintf("handleEnPassantCapture: invalid capture: %s %s", m.src, m.target),
+			piece.Value(capturedPiece) == piece.Pawn && piece.IsColor(capturedPiece, piece.Color(s.Board.Square(m.Source))*-1),
+			fmt.Sprintf("handleEnPassantCapture: invalid capture: %s %s", m.Source, m.Target),
 		)
 
 		s.nextBoard[board.SquareToIndex(capturedSquare)] = piece.Empty
@@ -222,14 +223,14 @@ func (s *State) handleEnPassantCapture(m move) {
 	}
 }
 
-func (s *State) handlePromotion(m move) {
-	if m.srcValue == piece.Pawn && m.targetRank == piece.MaxPawnRank[m.srcColor] {
-		p := s.ActivePlayer().ChoosePromotionPiece(m.target)
-		s.nextBoard[board.SquareToIndex(m.target)] = p * m.srcColor
+func (s *State) handlePromotion(m move.Move) {
+	if piece.Value(s.Board.Square(m.Source)) == piece.Pawn && m.TargetRank() == piece.MaxPawnRank[piece.Color(s.Board.Square(m.Source))] {
+		p := s.ActivePlayer().ChoosePromotionPiece(m.Target)
+		s.nextBoard[board.SquareToIndex(m.Target)] = p * piece.Color(s.Board.Square(m.Source))
 	}
 }
 
-func (s *State) handleUpdateCastlingRights(m move) {
+func (s *State) handleUpdateCastlingRights(m move.Move) {
 	assert.AddContext("move", m)
 
 	// rook movement
@@ -247,39 +248,50 @@ func (s *State) handleUpdateCastlingRights(m move) {
 	}
 
 	// king movement
-	if m.srcValue == piece.King {
-		s.Castling[m.srcColor] = [2]bool{false, false}
+	if piece.Value(s.Board.Square(m.Source)) == piece.King {
+		s.Castling[piece.Color(s.Board.Square(m.Source))] = [2]bool{false, false}
 	}
 }
 
-func (s *State) handleCastle(m move) {
+func (s *State) handleCastle(m move.Move) {
 	// castling occurs
-	if m.srcValue == piece.King && m.src == piece.StartingKingSquares[m.srcColor] {
+	if piece.Value(s.Board.Square(m.Source)) == piece.King && m.Source == piece.StartingKingSquares[piece.Color(s.Board.Square(m.Source))] {
 
-		for i, castlingTarget := range piece.CastlingSquares[m.srcColor] {
-			if m.target == castlingTarget {
-				rookSrc := piece.StartingRookSquares[m.srcColor][i]
-				rookTarget := piece.RookCastlingSquares[m.srcColor][i]
-				assert.Assert(s.Board.Square(rookSrc) == piece.Rook*m.srcColor, "no rook found when castling")
-				s.nextBoard.MakeMove(rookSrc, rookTarget)
+		for i, castlingTarget := range piece.CastlingSquares[piece.Color(s.Board.Square(m.Source))] {
+			if m.Target == castlingTarget {
+				rookSource := piece.StartingRookSquares[piece.Color(s.Board.Square(m.Source))][i]
+				rookTarget := piece.RookCastlingSquares[piece.Color(s.Board.Square(m.Source))][i]
+				assert.Assert(s.Board.Square(rookSource) == piece.Rook*piece.Color(s.Board.Square(m.Source)), "no rook found when castling")
+				s.nextBoard.MakeMove(move.NewMove(rookSource, rookTarget))
 			}
 		}
 
 	}
 }
 
-func (s *State) MakeMove(src, target string) {
-	m := newMove(*s, src, target)
+func (s *State) MakeMove(m move.Move) {
+	s.Board.Print()
 	assert.AddContext("FEN", s.FEN())
 	assert.AddContext("moves", s.Moves)
 	assert.AddContext("move", m)
 
-	isCapture := s.Board.Square(target) != piece.Empty
+	var isCapture bool
+	if s.Board.Square(m.Target) == piece.Empty {
+		if piece.Value(s.Board.Square(m.Source)) == piece.Pawn && m.Target == s.EnPassantTarget {
+			isCapture = true
+		} else {
+			isCapture = false
+		}
+	} else {
+		isCapture = true
+	}
+
+	var isPawnMove = piece.Value(s.Board.Square(m.Source)) == piece.Pawn
 
 	s.Moves = append(s.Moves, m)
 	s.handleEnPassantCapture(m)
 	s.handleEnPassantAvailable(m)
-	s.nextBoard.MakeMove(m.src, m.target)
+	s.nextBoard.MakeMove(m)
 	s.handleCastle(m)
 	s.handleUpdateCastlingRights(m)
 	s.handlePromotion(m)
@@ -289,10 +301,10 @@ func (s *State) MakeMove(src, target string) {
 		s.FullmoveNumber++
 	}
 
-	if piece.Value(m.srcPiece) != piece.Pawn && !isCapture {
-		s.HalfmoveClock++
-	} else {
+	if isPawnMove || isCapture {
 		s.HalfmoveClock = 0
+	} else {
+		s.HalfmoveClock++
 	}
 
 	s.ActiveColor *= -1
@@ -323,7 +335,7 @@ func (s *State) Undo() {
 
 func (s *State) PlayMoves(moves []string) {
 	for _, m := range moves {
-		s.MakeMove(m[:2], m[2:])
+		s.MakeMove(move.NewMove(m[:2], m[2:]))
 		s.NextTurn()
 	}
 }

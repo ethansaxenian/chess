@@ -5,6 +5,7 @@ import (
 	"math/rand"
 	"time"
 
+	"github.com/ethansaxenian/chess/move"
 	"github.com/ethansaxenian/chess/piece"
 )
 
@@ -32,10 +33,10 @@ func WithSeed(seed int64) func(*RandoBot) {
 	}
 }
 
-func (r RandoBot) GetMove(validMoves [][2]string) (string, string) {
+func (r RandoBot) GetMove(validMoves []move.Move) move.Move {
 	randomIndex := r.rand.Intn(len(validMoves))
 	pick := validMoves[randomIndex]
-	return pick[0], pick[1]
+	return pick
 }
 
 func (r RandoBot) State() map[string]any {

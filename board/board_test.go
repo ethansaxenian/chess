@@ -4,6 +4,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/ethansaxenian/chess/move"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -37,7 +38,7 @@ func TestBoardToFen(t *testing.T) {
 	b := LoadFEN(fen)
 	assert.Equal(t, fen, b.FEN())
 
-	b.MakeMove("e2", "e4")
+	b.MakeMove(move.NewMove("e2", "e4"))
 	newFen := "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR"
 	assert.Equal(t, newFen, b.FEN())
 }

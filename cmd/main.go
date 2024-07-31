@@ -10,10 +10,10 @@ import (
 	"strings"
 
 	"github.com/ethansaxenian/chess/assert"
-	"github.com/ethansaxenian/chess/game"
-	"github.com/ethansaxenian/chess/move"
+	"github.com/ethansaxenian/chess/generator"
 	"github.com/ethansaxenian/chess/piece"
 	"github.com/ethansaxenian/chess/player"
+	"github.com/ethansaxenian/chess/state"
 )
 
 func initLogger(value string) {
@@ -39,15 +39,15 @@ func initLogger(value string) {
 	slog.SetDefault(slog.New(h))
 }
 
-func mainLoop(state *game.State) {
+func mainLoop(state *state.State) {
 	state.Print()
-	possibleMoves := move.GeneratePossibleMoves(*state)
+	possibleMoves := generator.GeneratePossibleMoves(*state)
 	assert.AddContext("possible moves", possibleMoves)
 	assert.AddContext("FEN", state.FEN())
 	assert.AddContext("moves", state.Moves)
 
 	for _, m := range possibleMoves {
-		assert.Assert(piece.Value(state.Board.Square(m[1])) != piece.King, fmt.Sprintf("wtf: %s", m))
+		assert.Assert(piece.Value(state.Board.Square(m.Target)) != piece.King, fmt.Sprintf("wtf: %s", m))
 	}
 
 	if len(possibleMoves) == 0 {
@@ -55,8 +55,8 @@ func mainLoop(state *game.State) {
 		state.ActiveColor *= -1
 
 		var checkmate bool
-		for _, m := range move.GeneratePossibleMoves(*state) {
-			if state.Board.Square(m[1]) == piece.King*state.ActiveColor*-1 {
+		for _, m := range generator.GeneratePossibleMoves(*state) {
+			if state.Board.Square(m.Target) == piece.King*state.ActiveColor*-1 {
 				checkmate = true
 				break
 			}
@@ -75,9 +75,9 @@ func mainLoop(state *game.State) {
 		os.Exit(0)
 	}
 
-	src, target := state.ActivePlayer().GetMove(possibleMoves)
-	assert.Assert(slices.Contains(possibleMoves, [2]string{src, target}), fmt.Sprintf("%s,%s not in possibleMoves", src, target))
-	state.MakeMove(src, target)
+	m := state.ActivePlayer().GetMove(possibleMoves)
+	assert.Assert(slices.Contains(possibleMoves, m), fmt.Sprintf("%s not in possibleMoves", m))
+	state.MakeMove(m)
 }
 
 func main() {
@@ -86,12 +86,12 @@ func main() {
 
 	initLogger(*logLevel)
 
-	// white := player.NewHumanPlayer("human")
+	white := player.NewHumanPlayer("human")
 	// black := player.NewHumanPlayer("human")
-	white := player.NewRandoBot(player.WithSeed(10))
-	black := player.NewRandoBot(player.WithSeed(10))
+	// white := player.NewRandoBot(player.WithSeed(10))
+	black := player.NewRandoBot()
 
-	state := game.StartingState(white, black)
+	state := state.StartingState(white, black)
 
 	for {
 		mainLoop(state)

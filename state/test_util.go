@@ -1,12 +1,15 @@
-package game
+package state
 
-import "github.com/ethansaxenian/chess/piece"
+import (
+	"github.com/ethansaxenian/chess/move"
+	"github.com/ethansaxenian/chess/piece"
+)
 
 type testPlayer struct {
 }
 
-func (t testPlayer) GetMove(moves [][2]string) (string, string) {
-	return "", ""
+func (t testPlayer) GetMove(moves []move.Move) move.Move {
+	return move.Move{}
 }
 
 func (t testPlayer) State() map[string]any {

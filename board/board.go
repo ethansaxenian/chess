@@ -6,6 +6,7 @@ import (
 	"unicode"
 
 	"github.com/ethansaxenian/chess/assert"
+	"github.com/ethansaxenian/chess/move"
 	"github.com/ethansaxenian/chess/piece"
 )
 
@@ -162,12 +163,12 @@ func (b Chessboard) Print() {
 	fmt.Println("   a  b  c  d  e  f  g  h")
 }
 
-func (b *Chessboard) MakeMove(src, dest string) {
-	srcIndex := SquareToIndex(src)
-	destIndex := SquareToIndex(dest)
+func (b *Chessboard) MakeMove(m move.Move) {
+	sourceIndex := SquareToIndex(m.Source)
+	targetIndex := SquareToIndex(m.Target)
 
-	b[destIndex] = b[srcIndex]
-	b[srcIndex] = piece.Empty
+	b[targetIndex] = b[sourceIndex]
+	b[sourceIndex] = piece.Empty
 }
 
 func (b Chessboard) Square(square string) piece.Piece {

@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/ethansaxenian/chess/move"
 	"github.com/ethansaxenian/chess/piece"
 )
 
@@ -27,7 +28,7 @@ func getInput() string {
 	return input
 }
 
-func (h HumanPlayer) GetMove(validMoves [][2]string) (string, string) {
+func (h HumanPlayer) GetMove(validMoves []move.Move) move.Move {
 	for {
 		input := getInput()
 
@@ -35,8 +36,9 @@ func (h HumanPlayer) GetMove(validMoves [][2]string) (string, string) {
 			continue
 		}
 
-		if slices.Contains(validMoves, [2]string{input[:2], input[2:]}) {
-			return input[:2], input[2:]
+		m := move.NewMove(input[:2], input[2:])
+		if slices.Contains(validMoves, m) {
+			return m
 		}
 	}
 }

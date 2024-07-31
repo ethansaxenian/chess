@@ -1,7 +1,6 @@
 package piece
 
 import (
-	"math"
 	"strings"
 
 	"github.com/ethansaxenian/chess/assert"
@@ -19,12 +18,75 @@ const (
 	King
 )
 
-var SlidingPieces = []Piece{Bishop, Rook, Queen}
-
 const (
 	White Piece = 1
 	Black Piece = -1
 )
+
+func (p Piece) Color() Piece {
+	if p > 0 {
+		return White
+	} else if p < 0 {
+		return Black
+	} else {
+		return Empty
+	}
+}
+
+func (p Piece) Type() Piece {
+	return p * p.Color()
+}
+
+func (p Piece) FEN() string {
+	var char string
+	switch t := p.Type(); t {
+	case Empty:
+		assert.Raise("piece.None has no FEN repr")
+	case Pawn:
+		char = "p"
+	case Knight:
+		char = "n"
+	case Bishop:
+		char = "b"
+	case Rook:
+		char = "r"
+	case Queen:
+		char = "q"
+	case King:
+		char = "k"
+	default:
+		char = ""
+	}
+
+	if p.Color() == White {
+		char = strings.ToUpper(char)
+	}
+
+	return char
+}
+
+func (p Piece) String() string {
+	switch p.Type() {
+	case Empty:
+		return " "
+	case Pawn:
+		return "♟"
+	case Knight:
+		return "♞"
+	case Bishop:
+		return "♝"
+	case Rook:
+		return "♜"
+	case Queen:
+		return "♛"
+	case King:
+		return "♚"
+	default:
+		return ""
+	}
+}
+
+var SlidingPieces = []Piece{Bishop, Rook, Queen}
 
 var StartingPawnRanks = map[Piece]int{
 	Pawn * White: 2,
@@ -50,31 +112,6 @@ var CharToPiece = map[rune]Piece{
 	'k': King,
 }
 
-var PieceToChar = map[Piece]rune{
-	Empty:  ' ',
-	Pawn:   '♟',
-	Knight: '♞',
-	Bishop: '♝',
-	Rook:   '♜',
-	Queen:  '♛',
-	King:   '♚',
-}
-
-var PieceToRepr = map[Piece]string{
-	Empty:  "",
-	Pawn:   "",
-	Knight: "n",
-	Bishop: "b",
-	Rook:   "r",
-	Queen:  "q",
-	King:   "k",
-}
-
-var ColorToRepr = map[Piece]string{
-	White: "white",
-	Black: "black",
-}
-
 var StartingKingSquares = map[Piece]string{
 	White: "e1",
 	Black: "e8",
@@ -98,40 +135,4 @@ var CastlingIntermediateSquares = map[Piece][2][]string{
 var RookCastlingSquares = map[Piece][2]string{
 	White: {"f1", "d1"},
 	Black: {"f8", "d8"},
-}
-
-func FENRepr(piece Piece) string {
-	var char string
-	switch v := Value(piece); v {
-	case Pawn:
-		char = "p"
-	case Empty:
-		assert.Raise("piece.None has no FEN repr")
-	default:
-		char = PieceToRepr[v]
-	}
-
-	if IsColor(piece, White) {
-		char = strings.ToUpper(char)
-	}
-
-	return char
-}
-
-func Value(p Piece) Piece {
-	return Piece(math.Abs(float64(p)))
-}
-
-func Color(p Piece) Piece {
-	if p > 0 {
-		return White
-	} else if p < 0 {
-		return Black
-	} else {
-		return Empty
-	}
-}
-
-func IsColor(p, c Piece) bool {
-	return p*c > 0
 }

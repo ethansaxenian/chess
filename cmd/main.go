@@ -47,7 +47,7 @@ func mainLoop(state *state.State) {
 	assert.AddContext("moves", state.Moves)
 
 	for _, m := range possibleMoves {
-		assert.Assert(piece.Value(state.Board.Square(m.Target)) != piece.King, fmt.Sprintf("wtf: %s", m))
+		assert.Assert(state.Piece(m.Target).Type() != piece.King, fmt.Sprintf("wtf: %s", m))
 	}
 
 	if len(possibleMoves) == 0 {
@@ -56,7 +56,7 @@ func mainLoop(state *state.State) {
 
 		var checkmate bool
 		for _, m := range generator.GeneratePossibleMoves(*state) {
-			if state.Board.Square(m.Target) == piece.King*state.ActiveColor*-1 {
+			if state.Piece(m.Target) == piece.King*state.ActiveColor*-1 {
 				checkmate = true
 				break
 			}
@@ -86,10 +86,10 @@ func main() {
 
 	initLogger(*logLevel)
 
-	white := player.NewHumanPlayer("human")
+	// white := player.NewHumanPlayer("human")
 	// black := player.NewHumanPlayer("human")
-	// white := player.NewRandoBot(player.WithSeed(10))
-	black := player.NewRandoBot()
+	white := player.NewRandoBot(player.WithSeed(10))
+	black := player.NewRandoBot(player.WithSeed(1722405359723887000))
 
 	state := state.StartingState(white, black)
 

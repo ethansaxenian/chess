@@ -29,8 +29,8 @@ func TestHandleEnPassantCapture(t *testing.T) {
 	s := NewTestStateFromFEN("8/8/8/3Pp3/8/8/8/8 w - e6 0 1")
 	s.MakeMove(move.NewMove("d5", "e6"))
 	assert.Equal(t, noEnPassantTarget, s.EnPassantTarget)
-	assert.Equal(t, piece.Pawn*piece.White, s.Board.Square("e6"))
-	assert.Equal(t, piece.Empty, s.Board.Square("e5"))
+	assert.Equal(t, piece.Pawn*piece.White, s.Piece("e6"))
+	assert.Equal(t, piece.Empty, s.Piece("e5"))
 	assert.Equal(t, "8/8/4P3/8/8/8/8/8 b - - 0 1", s.FEN())
 }
 
@@ -38,8 +38,8 @@ func TestHandleEnPassantNoCapture(t *testing.T) {
 	s := NewTestStateFromFEN("8/8/8/3Pp3/8/8/8/8 w - e6 0 1")
 	s.MakeMove(move.NewMove("d5", "d6"))
 	assert.Equal(t, noEnPassantTarget, s.EnPassantTarget)
-	assert.Equal(t, piece.Pawn*piece.White, s.Board.Square("d6"))
-	assert.Equal(t, piece.Pawn*piece.Black, s.Board.Square("e5"))
+	assert.Equal(t, piece.Pawn*piece.White, s.Piece("d6"))
+	assert.Equal(t, piece.Pawn*piece.Black, s.Piece("e5"))
 	assert.Equal(t, "8/8/3P4/4p3/8/8/8/8 b - - 0 1", s.FEN())
 }
 

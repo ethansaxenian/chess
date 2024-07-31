@@ -44,7 +44,7 @@ func GeneratePossibleMoves(state state.State) []move.Move {
 
 		var capturedKing bool
 		for _, nextMove := range generateTmpMoves(state) {
-			if state.Board.Square(nextMove.Target) == piece.King*state.ActiveColor*-1 {
+			if state.Piece(nextMove.Target) == piece.King*state.ActiveColor*-1 {
 				capturedKing = true
 				break
 			}
@@ -82,16 +82,16 @@ func generateTmpMoves(state state.State) []move.Move {
 }
 
 func validateMove(state state.State, src, target string) bool {
-	srcPiece := state.Board.Square(src)
-	targetPiece := state.Board.Square(target)
+	srcPiece := state.Piece(src)
+	targetPiece := state.Piece(target)
 
 	// src is my color
-	if !piece.IsColor(srcPiece, state.ActiveColor) {
+	if srcPiece.Color() != state.ActiveColor {
 		return false
 	}
 
 	// target is not my color
-	if piece.IsColor(targetPiece, state.ActiveColor) {
+	if targetPiece.Color() == state.ActiveColor {
 		return false
 	}
 
@@ -103,9 +103,9 @@ func validateMove(state state.State, src, target string) bool {
 }
 
 func validatePieceMove(srcPiece piece.Piece, srcSquare, targetSquare string) bool {
-	switch piece.Value(srcPiece) {
+	switch srcPiece.Type() {
 	case piece.Pawn:
-		return validatePawnMove(srcSquare, targetSquare, piece.Color(srcPiece))
+		return validatePawnMove(srcSquare, targetSquare, srcPiece.Color())
 	case piece.Knight:
 		return validateKnightMove(srcSquare, targetSquare)
 	case piece.Bishop:
@@ -225,7 +225,7 @@ func validateKingMove(src, target string) bool {
 }
 
 func validatePieceMoveWithState(s state.State, srcPiece piece.Piece, src, target string) bool {
-	switch piece.Value(srcPiece) {
+	switch srcPiece.Type() {
 	case piece.Pawn:
 		return validatePawnMoveWithState(s, src, target)
 	case piece.Knight:
@@ -244,15 +244,15 @@ func validatePieceMoveWithState(s state.State, srcPiece piece.Piece, src, target
 }
 
 func validatePawnMoveWithState(s state.State, src, target string) bool {
-	srcPiece := s.Board.Square(src)
-	srcColor := piece.Color(srcPiece)
-	targetPiece := s.Board.Square(target)
+	srcPiece := s.Piece(src)
+	srcColor := srcPiece.Color()
+	targetPiece := s.Piece(target)
 
 	isCaptureAttempt := src[0] != target[0]
 	isEnPassantAttempt := s.EnPassantTarget == target
-	isOppositeColorPiece := piece.IsColor(targetPiece, srcColor*-1)
+	isOppositeColorPiece := targetPiece.Color() == srcColor*-1
 	isDoubleMove := int(target[1])-int(src[1]) == 2*int(srcColor)
-	jumpsOverPiece := s.Board.Square(board.AddRank(src, int(srcColor))) != piece.Empty
+	jumpsOverPiece := s.Piece(board.AddRank(src, int(srcColor))) != piece.Empty
 
 	if isCaptureAttempt {
 		if isEnPassantAttempt && targetPiece != piece.Empty {
@@ -297,16 +297,16 @@ func validateBishopMoveWithState(s state.State, src, target string) bool {
 		dr = -1
 	}
 
-	srcPiece := s.Board.Square(src)
+	srcPiece := s.Piece(src)
 
 	for f, r := sf+df, sr+dr; ; f, r = f+df, r+dr {
 		assert.Assert(f >= 'a' && f <= 'h' && r >= 1 && r <= 8, fmt.Sprintf("%s%s: %d/%d", src, target, df, dr))
-		currPiece := s.Board.Square(board.CoordsToSquare(f, r))
+		currPiece := s.Piece(board.CoordsToSquare(f, r))
 
 		if f == tf && r == tr {
 			if currPiece == piece.Empty {
 				return true
-			} else if piece.IsColor(currPiece, srcPiece) {
+			} else if currPiece.Color() == srcPiece.Color() {
 				return false
 			} else {
 				return true
@@ -341,15 +341,15 @@ func validateRookMoveWithState(s state.State, src, target string) bool {
 		dr = 1
 	}
 
-	srcPiece := s.Board.Square(src)
+	srcPiece := s.Piece(src)
 
 	for f, r := sf+df, sr+dr; ; f, r = f+df, r+dr {
-		currPiece := s.Board.Square(board.CoordsToSquare(f, r))
+		currPiece := s.Piece(board.CoordsToSquare(f, r))
 
 		if f == tf && r == tr {
 			if currPiece == piece.Empty {
 				return true
-			} else if piece.IsColor(currPiece, srcPiece) {
+			} else if currPiece.Color() == srcPiece.Color() {
 				return false
 			} else {
 				return true
@@ -365,7 +365,7 @@ func validateQueenMoveWithState(s state.State, src, target string) bool {
 }
 
 func validateKingMoveWithState(s state.State, src, target string) bool {
-	color := piece.Color(s.Board.Square(src))
+	color := s.Piece(src).Color()
 
 	startingSquare := piece.StartingKingSquares[color]
 	castlingSquares := piece.CastlingSquares[color]
@@ -386,7 +386,7 @@ func validateKingMoveWithState(s state.State, src, target string) bool {
 
 			// blocking pieces
 			for _, square := range intermediateSquares[i] {
-				if s.Board.Square(square) != piece.Empty {
+				if s.Piece(square) != piece.Empty {
 					return false
 				}
 			}

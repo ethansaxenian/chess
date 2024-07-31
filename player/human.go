@@ -48,9 +48,9 @@ func (h HumanPlayer) State() map[string]any {
 }
 
 func (h HumanPlayer) ChoosePromotionPiece(square string) piece.Piece {
-	fmt.Printf("Promote %c on %s\n", piece.PieceToChar[piece.Pawn], square)
+	fmt.Printf("Promote %s on %s\n", piece.Pawn, square)
 	for i, p := range piece.PossiblePromotions {
-		fmt.Printf("%d: %c\n", i, piece.PieceToChar[p])
+		fmt.Printf("%d: %s\n", i, p)
 	}
 	for {
 		input := getInput()

@@ -109,7 +109,7 @@ func (b Chessboard) FEN() string {
 					spaceCounter = 0
 				}
 
-				fen += piece.FENRepr(p)
+				fen += p.FEN()
 			}
 		}
 
@@ -154,8 +154,7 @@ func (b Chessboard) Print() {
 				squareColor = blackSquare
 			}
 
-			char := string(piece.PieceToChar[piece.Value(p)])
-			fmt.Print(squareColor, pieceColor, " ", char, " ", reset)
+			fmt.Print(squareColor, pieceColor, " ", p, " ", reset)
 		}
 		fmt.Println()
 	}

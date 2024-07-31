@@ -26,6 +26,10 @@ type State struct {
 	FullmoveNumber  int
 }
 
+func (s State) FENS_internal() []string {
+	return s.fens
+}
+
 func (s State) DeepCopy() *State {
 	n := &State{Players: make(map[piece.Piece]player.Player), Castling: make(map[piece.Piece][2]bool)}
 	for color, player := range s.Players {
@@ -46,18 +50,7 @@ func (s State) DeepCopy() *State {
 }
 
 func StartingState(white, black player.Player) *State {
-	fen := board.StartingFEN
-
-	s := &State{
-		Players: map[piece.Piece]player.Player{
-			piece.White: white,
-			piece.Black: black,
-		},
-	}
-
-	s.LoadFEN(fen)
-
-	return s
+	return StartingStateFromFEN(board.StartingFEN, white, black)
 }
 
 func StartingStateFromFEN(fen string, white, black player.Player) *State {
@@ -123,7 +116,6 @@ func (s *State) LoadFEN(fen string) {
 	s.FullmoveNumber = fullmoveNumber
 
 	s.fens = append(s.fens, fen)
-
 	assert.AddContext("FEN", s.FEN())
 	assert.AddContext("moves", s.Moves)
 }
@@ -164,6 +156,7 @@ func (s State) FEN() string {
 }
 
 func (s State) String() string {
+	assert.Assert(s.Board == s.nextBoard, "dasfsdg")
 	return s.FEN()
 }
 
@@ -302,21 +295,35 @@ func (s *State) MakeMove(src, target string) {
 		s.HalfmoveClock = 0
 	}
 
+	s.ActiveColor *= -1
 	s.fens = append(s.fens, s.FEN())
-
 	assert.AddContext("FEN", s.FEN())
 	assert.AddContext("moves", s.Moves)
 	assert.DeleteContext("move")
 }
 
 func (s *State) Undo() {
-	assert.Assert(len(s.fens) > 1, fmt.Sprintf("cannot undo move? there are %d fens", len(s.fens)))
+	numFens := len(s.fens)
 
-	// remove the last TWO fens (current turn and previous turn)
-	prevFEN := s.fens[len(s.fens)-2]
-	s.fens = s.fens[:len(s.fens)-2]
-	s.Moves = s.Moves[:len(s.Moves)-1]
+	assert.Assert(numFens > 1, fmt.Sprintf("cannot undo move? there are %d fens", len(s.fens)))
 
-	// this will add prevFEN back to s.fens
+	assert.AddContext("last recorded FEN", s.fens[numFens-1])
+	assert.AddContext("current FEN", s.FEN())
+	assert.Assert(s.fens[numFens-1] == s.FEN(), "Undo: FEN mismatch")
+	assert.DeleteContext("last recorded FEN")
+	assert.DeleteContext("current FEN")
+
+	index := numFens - 2
+	prevFEN := s.fens[index]
+	s.fens = s.fens[:index]
+
+	// this adds prevFEN back to s.fens
 	s.LoadFEN(prevFEN)
+}
+
+func (s *State) PlayMoves(moves []string) {
+	for _, m := range moves {
+		s.MakeMove(m[:2], m[2:])
+		s.NextTurn()
+	}
 }

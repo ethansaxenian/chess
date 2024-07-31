@@ -2,6 +2,7 @@ package move
 
 import (
 	"fmt"
+	"log/slog"
 	"slices"
 	"testing"
 
@@ -405,13 +406,17 @@ func TestGeneratePossibleMovesNotIn(t *testing.T) {
 			fen:              "rR1qkb1r/3ppp2/7n/1b1n1Ppp/5B2/2PP2PN/4PK1P/1N1Q1B1R w q - 1 15",
 			notPossibleMoves: [][2]string{{"d8", "c7"}},
 		},
+		"d": {
+			fen:              "r1bqk1n1/p1pp1pr1/n6p/1p4p1/1b5P/QNPp2P1/PP2PP2/R1B1KBNR w KQq - 4 11",
+			notPossibleMoves: [][2]string{{"c3", "c4"}},
+		},
 	}
 
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
 			s := *game.NewTestStateFromFEN(test.fen)
+			assert.Equal(t, test.fen, s.FEN())
 			moves := GeneratePossibleMoves(s)
-			fmt.Println(moves)
 			for _, m := range test.notPossibleMoves {
 				assert.NotContains(t, moves, m)
 			}

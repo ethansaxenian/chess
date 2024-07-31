@@ -40,27 +40,24 @@ func GeneratePossibleMoves(state game.State) [][2]string {
 	moves := [][2]string{}
 
 	for _, m := range generateTmpMoves(state) {
-		state.NextTurn()
 		state.MakeMove(m[0], m[1])
 
 		var capturedKing bool
 		for _, nextMove := range generateTmpMoves(state) {
 			if state.Board.Square(nextMove[1]) == piece.King*state.ActiveColor*-1 {
 				capturedKing = true
+				break
 			}
 		}
+
 		if !capturedKing {
 			moves = append(moves, m)
 		}
+
 		state.Undo()
+
 	}
 
-	sort.Slice(moves, func(i, j int) bool {
-		if moves[i][0] == moves[j][0] {
-			return moves[i][1] < moves[j][1]
-		}
-		return moves[i][0] < moves[j][0]
-	})
 	return moves
 }
 
@@ -78,6 +75,10 @@ func generateTmpMoves(state game.State) [][2]string {
 			}
 		}
 	}
+
+	sort.Slice(moves, func(i, j int) bool {
+		return moves[i][0]+moves[i][1] < moves[j][0]+moves[j][1]
+	})
 
 	return moves
 }

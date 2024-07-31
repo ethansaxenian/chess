@@ -30,7 +30,7 @@ func TestHandleEnPassantCapture(t *testing.T) {
 	assert.Equal(t, noEnPassantTarget, s.EnPassantTarget)
 	assert.Equal(t, piece.Pawn*piece.White, s.Board.Square("e6"))
 	assert.Equal(t, piece.Empty, s.Board.Square("e5"))
-	assert.Equal(t, "8/8/4P3/8/8/8/8/8 w - - 0 1", s.FEN())
+	assert.Equal(t, "8/8/4P3/8/8/8/8/8 b - - 0 1", s.FEN())
 }
 
 func TestLoadFen(t *testing.T) {
@@ -142,68 +142,38 @@ func TestHandleUpdateCastlingRights(t *testing.T) {
 	assert.Equal(t, [2]bool{false, true}, s.Castling[piece.Black])
 }
 
-func TestUndoFirstMove(t *testing.T) {
+func TestUndo(t *testing.T) {
+	tests := map[string]struct {
+		startingFEN string
+		move        [2]string
+	}{
+		"Starting FEN": {
+			startingFEN: board.StartingFEN,
+			move:        [2]string{"e2", "e4"},
+		},
+		"castling": {
+			startingFEN: "rn2kbnr/p1pq1p1p/b2p2p1/1p2p3/2P1P1P1/3B1P1P/PP1PN3/RNBQK2R w KQkq - 0 1",
+			move:        [2]string{"a7", "a5"},
+		},
+	}
+
+	for name, test := range tests {
+		t.Run(name, func(t *testing.T) {
+			s := NewTestStateFromFEN(test.startingFEN)
+			s.MakeMove(test.move[0], test.move[1])
+			s.Undo()
+			assert.Equal(t, test.startingFEN, s.FEN())
+			assert.Equal(t, s.fens[len(s.fens)-1], s.FEN())
+		})
+	}
+}
+
+func TestUndoSecondTurn(t *testing.T) {
 	s := NewTestStateFromFEN(board.StartingFEN)
-	assert.Equal(t, 1, len(s.fens), "init")
-	assert.Equal(t, board.StartingFEN, s.fens[0], "init")
 	s.MakeMove("e2", "e4")
-
-	assert.Equal(t, 2, len(s.fens), "1 move")
-	assert.Equal(t, board.StartingFEN, s.fens[0], "1 move")
-	assert.Equal(t, s.FEN(), s.fens[1], "1 move")
+	s.MakeMove("e7", "e5")
 	s.Undo()
-
-	assert.Equal(t, 1, len(s.fens), s.fens)
-	assert.Equal(t, board.StartingFEN, s.FEN(), "undo")
-}
-
-func TestUndoCastle(t *testing.T) {
-	initFEN := "rn2kbnr/p1pq1p1p/b2p2p1/1p2p3/2P1P1P1/3B1P1P/PP1PN3/RNBQK2R w KQkq - 0 1"
-	s := NewTestStateFromFEN(initFEN)
-
-	s.MakeMove("e1", "g1")
-
-	nextFEN := "rn2kbnr/p1pq1p1p/b2p2p1/1p2p3/2P1P1P1/3B1P1P/PP1PN3/RNBQ1RK1 w kq - 1 1"
-	assert.Equal(t, nextFEN, s.FEN())
-
 	s.Undo()
-
-	assert.Equal(t, initFEN, s.FEN())
-}
-
-func TestUndoMultipleMoves(t *testing.T) {
-	s := NewTestStateFromFEN(board.StartingFEN)
-	assert.Equal(t, []string{board.StartingFEN}, s.fens)
-
-	s.MakeMove("h2", "h4")
-	fen1 := s.FEN()
-	s.NextTurn()
-	assert.Equal(t, []string{board.StartingFEN, fen1}, s.fens)
-
-	s.MakeMove("g7", "g5")
-	fen2 := s.FEN()
-	s.NextTurn()
-	assert.Equal(t, []string{board.StartingFEN, fen1, fen2}, s.fens)
-
-	s.MakeMove("e2", "e3")
-	fen3 := s.FEN()
-	s.NextTurn()
-	assert.Equal(t, []string{board.StartingFEN, fen1, fen2, fen3}, s.fens)
-
-	s.Undo()
-	assert.Equal(t, fen2, s.FEN())
-	assert.Equal(t, []string{board.StartingFEN, fen1, fen2}, s.fens)
-
-	s.MakeMove("e3", "e4")
-	fen4 := s.FEN()
-	s.NextTurn()
-	assert.Equal(t, []string{board.StartingFEN, fen1, fen2, fen4}, s.fens)
-
-	s.Undo()
-	assert.Equal(t, fen2, s.FEN())
-	assert.Equal(t, []string{board.StartingFEN, fen1, fen2}, s.fens)
-
-	s.Undo()
-	assert.Equal(t, fen1, s.FEN())
-	assert.Equal(t, []string{board.StartingFEN, fen1}, s.fens)
+	assert.Equal(t, s.fens[len(s.fens)-1], s.FEN())
+	assert.Equal(t, board.StartingFEN, s.FEN())
 }

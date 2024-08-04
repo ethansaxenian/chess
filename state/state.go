@@ -20,7 +20,7 @@ type State struct {
 	EnPassantTarget string
 	Moves           []move.Move
 	fens            []string
-	board           board.Chessboard
+	Board           board.Chessboard
 	nextBoard       board.Chessboard
 	ActiveColor     piece.Piece
 	HalfmoveClock   int
@@ -47,8 +47,8 @@ func StartingStateFromFEN(fen string, white, black player.Player) *State {
 func (s *State) LoadFEN(fen string) {
 	fenFields := strings.Fields(fen)
 
-	s.board = board.LoadFEN(fenFields[0])
-	s.nextBoard = s.board
+	s.Board = board.LoadFEN(fenFields[0])
+	s.nextBoard = s.Board
 
 	var activeColor piece.Piece
 	switch fenFields[1] {
@@ -101,7 +101,7 @@ func (s *State) LoadFEN(fen string) {
 
 func (s State) FEN() string {
 	var fen []string
-	fen = append(fen, s.board.FEN())
+	fen = append(fen, s.Board.FEN())
 
 	if s.ActiveColor == piece.White {
 		fen = append(fen, "w")
@@ -135,11 +135,11 @@ func (s State) FEN() string {
 }
 
 func (s State) Piece(square string) piece.Piece {
-	return s.board.Square(square)
+	return s.Board.Square(square)
 }
 
 func (s State) String() string {
-	assert.Assert(s.board == s.nextBoard, "dasfsdg")
+	assert.Assert(s.Board == s.nextBoard, "dasfsdg")
 	return s.FEN()
 }
 
@@ -174,7 +174,7 @@ func playerStateMsg(p player.Player) []any {
 
 func (s State) Print() {
 	clearScreen()
-	s.board.Print()
+	s.Board.Print()
 	fmt.Println(s)
 }
 
@@ -278,7 +278,7 @@ func (s *State) MakeMove(m move.Move) {
 	s.handleCastle(m)
 	s.handleUpdateCastlingRights(m)
 	s.handlePromotion(m)
-	s.board = s.nextBoard
+	s.Board = s.nextBoard
 
 	if s.ActiveColor.Color() == piece.Black {
 		s.FullmoveNumber++

@@ -37,17 +37,17 @@ func initLogger(value string) {
 	slog.SetDefault(slog.New(h))
 }
 
-func mainLoop(s *state.State) {
-	s.Print()
-	possibleMoves := s.GeneratePossibleMoves()
+func mainLoop(state *state.State) {
+	state.Print()
+	possibleMoves := state.GeneratePossibleMoves()
 	assert.AddContext("possible moves", possibleMoves)
-	assert.AddContext("FEN", s.FEN())
-	assert.AddContext("moves", s.Moves)
+	assert.AddContext("FEN", state.FEN())
+	assert.AddContext("moves", state.Moves)
 
 	if len(possibleMoves) == 0 {
-		fmt.Println(s.ActivePlayerRepr(), "to play")
+		fmt.Println(state.ActivePlayerRepr(), "to play")
 
-		if s.IsCheck() {
+		if state.IsCheck() {
 			fmt.Println("checkmate!")
 		} else {
 			fmt.Println("draw!")
@@ -56,14 +56,14 @@ func mainLoop(s *state.State) {
 		os.Exit(0)
 	}
 
-	if s.HalfmoveClock == 100 {
+	if state.HalfmoveClock == 100 {
 		fmt.Println("draw!")
 		os.Exit(0)
 	}
 
-	m := s.ActivePlayer().GetMove(possibleMoves)
+	m := state.ActivePlayer().GetMove(possibleMoves)
 	assert.Assert(slices.Contains(possibleMoves, m), fmt.Sprintf("%s not in possibleMoves", m))
-	s.MakeMove(m)
+	state.MakeMove(m)
 }
 
 func main() {

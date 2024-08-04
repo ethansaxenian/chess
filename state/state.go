@@ -348,18 +348,16 @@ func (s State) GeneratePossibleMoves() []move.Move {
 }
 
 func (s *State) IsCheck() bool {
-	activeColor := s.ActiveColor
-
 	s.ActiveColor *= -1
 
-	var checkmate bool
+	var check bool
 	for _, m := range s.GeneratePossibleMoves() {
-		if s.Piece(m.Target) == piece.King*activeColor {
-			checkmate = true
+		if s.Piece(m.Target) == piece.King*s.ActiveColor*-1 {
+			check = true
 			break
 		}
 	}
+	s.ActiveColor *= -1
 
-	s.ActiveColor = activeColor
-	return checkmate
+	return check
 }

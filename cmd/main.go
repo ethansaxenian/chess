@@ -50,7 +50,7 @@ func mainLoop(state *state.State) {
 		if state.IsCheck() {
 			fmt.Println("checkmate!")
 		} else {
-			fmt.Println("draw!")
+			fmt.Println("stalemate!")
 		}
 
 		os.Exit(0)

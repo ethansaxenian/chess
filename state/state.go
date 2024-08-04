@@ -322,15 +322,15 @@ func (s *State) PlayMoves(moves []string) {
 	}
 }
 
-func (state State) GeneratePossibleMoves() []move.Move {
+func (s State) GeneratePossibleMoves() []move.Move {
 	moves := []move.Move{}
 
-	for _, m := range generateTmpMoves(state) {
-		state.MakeMove(m)
+	for _, m := range generateTmpMoves(s) {
+		s.MakeMove(m)
 
 		var capturedKing bool
-		for _, nextMove := range generateTmpMoves(state) {
-			if state.Piece(nextMove.Target) == piece.King*state.ActiveColor*-1 {
+		for _, nextMove := range generateTmpMoves(s) {
+			if s.Piece(nextMove.Target) == piece.King*s.ActiveColor*-1 {
 				capturedKing = true
 				break
 			}
@@ -340,7 +340,7 @@ func (state State) GeneratePossibleMoves() []move.Move {
 			moves = append(moves, m)
 		}
 
-		state.Undo()
+		s.Undo()
 
 	}
 

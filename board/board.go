@@ -126,7 +126,7 @@ func (b Chessboard) FEN() string {
 	return fen
 }
 
-func (b Chessboard) Print() {
+func (b Chessboard) String() string {
 	whiteSquare := "\033[48;2;194;167;120m"
 	whitePiece := "\033[38;2;255;255;255m"
 
@@ -135,8 +135,10 @@ func (b Chessboard) Print() {
 
 	reset := "\033[0m"
 
+	var repr string
+
 	for rank := 7; rank >= 0; rank-- {
-		fmt.Printf("%d ", rank+1)
+		repr += fmt.Sprintf("%d ", rank+1)
 		for file := 0; file < 8; file++ {
 			p := b[rank*boardLength+file]
 
@@ -146,7 +148,6 @@ func (b Chessboard) Print() {
 			} else if p > 0 {
 				pieceColor = whitePiece
 			}
-
 			var squareColor string
 			if (rank%2 == 0 && file%2 != 0) || (rank%2 != 0 && file%2 == 0) {
 				squareColor = whiteSquare
@@ -154,12 +155,19 @@ func (b Chessboard) Print() {
 				squareColor = blackSquare
 			}
 
-			fmt.Print(squareColor, pieceColor, " ", p, " ", reset)
+			repr += fmt.Sprint(squareColor, pieceColor, " ", p, " ", reset)
 		}
-		fmt.Println()
+
+		repr += fmt.Sprintln()
 	}
 
-	fmt.Println("   a  b  c  d  e  f  g  h")
+	repr += fmt.Sprintln("   a  b  c  d  e  f  g  h")
+
+	return repr
+}
+
+func (b Chessboard) Print() {
+	fmt.Print(b.String())
 }
 
 func (b *Chessboard) MakeMove(m move.Move) {

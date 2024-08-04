@@ -10,7 +10,6 @@ import (
 	"strings"
 
 	"github.com/ethansaxenian/chess/assert"
-	"github.com/ethansaxenian/chess/piece"
 	"github.com/ethansaxenian/chess/player"
 	"github.com/ethansaxenian/chess/state"
 )
@@ -44,10 +43,6 @@ func mainLoop(state *state.State) {
 	assert.AddContext("possible moves", possibleMoves)
 	assert.AddContext("FEN", state.FEN())
 	assert.AddContext("moves", state.Moves)
-
-	for _, m := range possibleMoves {
-		assert.Assert(state.Piece(m.Target).Type() != piece.King, fmt.Sprintf("wtf: %s", m))
-	}
 
 	if len(possibleMoves) == 0 {
 		fmt.Println(state.ActivePlayerRepr(), "to play")

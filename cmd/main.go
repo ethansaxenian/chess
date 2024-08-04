@@ -10,7 +10,6 @@ import (
 	"strings"
 
 	"github.com/ethansaxenian/chess/assert"
-	"github.com/ethansaxenian/chess/generator"
 	"github.com/ethansaxenian/chess/piece"
 	"github.com/ethansaxenian/chess/player"
 	"github.com/ethansaxenian/chess/state"
@@ -41,7 +40,7 @@ func initLogger(value string) {
 
 func mainLoop(state *state.State) {
 	state.Print()
-	possibleMoves := generator.GeneratePossibleMoves(*state)
+	possibleMoves := state.GeneratePossibleMoves()
 	assert.AddContext("possible moves", possibleMoves)
 	assert.AddContext("FEN", state.FEN())
 	assert.AddContext("moves", state.Moves)
@@ -55,7 +54,7 @@ func mainLoop(state *state.State) {
 		state.ActiveColor *= -1
 
 		var checkmate bool
-		for _, m := range generator.GeneratePossibleMoves(*state) {
+		for _, m := range state.GeneratePossibleMoves() {
 			if state.Piece(m.Target) == piece.King*state.ActiveColor*-1 {
 				checkmate = true
 				break

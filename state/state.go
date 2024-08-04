@@ -20,34 +20,11 @@ type State struct {
 	EnPassantTarget string
 	Moves           []move.Move
 	fens            []string
-	Board           board.Chessboard
+	board           board.Chessboard
 	nextBoard       board.Chessboard
 	ActiveColor     piece.Piece
 	HalfmoveClock   int
 	FullmoveNumber  int
-}
-
-func (s State) FENS_internal() []string {
-	return s.fens
-}
-
-func (s State) DeepCopy() *State {
-	n := &State{Players: make(map[piece.Piece]player.Player), Castling: make(map[piece.Piece][2]bool)}
-	for color, player := range s.Players {
-		n.Players[color] = player
-	}
-	for color, castlingRights := range s.Castling {
-		n.Castling[color] = castlingRights
-	}
-	n.EnPassantTarget = s.EnPassantTarget
-	n.Moves = append(n.Moves, s.Moves...)
-	n.Board = s.Board
-	n.nextBoard = s.nextBoard
-	n.ActiveColor = s.ActiveColor
-	n.HalfmoveClock = s.HalfmoveClock
-	n.FullmoveNumber = s.FullmoveNumber
-
-	return n
 }
 
 func StartingState(white, black player.Player) *State {
@@ -66,11 +43,12 @@ func StartingStateFromFEN(fen string, white, black player.Player) *State {
 
 	return s
 }
+
 func (s *State) LoadFEN(fen string) {
 	fenFields := strings.Fields(fen)
 
-	s.Board = board.LoadFEN(fenFields[0])
-	s.nextBoard = s.Board
+	s.board = board.LoadFEN(fenFields[0])
+	s.nextBoard = s.board
 
 	var activeColor piece.Piece
 	switch fenFields[1] {
@@ -123,7 +101,7 @@ func (s *State) LoadFEN(fen string) {
 
 func (s State) FEN() string {
 	var fen []string
-	fen = append(fen, s.Board.FEN())
+	fen = append(fen, s.board.FEN())
 
 	if s.ActiveColor == piece.White {
 		fen = append(fen, "w")
@@ -157,11 +135,11 @@ func (s State) FEN() string {
 }
 
 func (s State) Piece(square string) piece.Piece {
-	return s.Board.Square(square)
+	return s.board.Square(square)
 }
 
 func (s State) String() string {
-	assert.Assert(s.Board == s.nextBoard, "dasfsdg")
+	assert.Assert(s.board == s.nextBoard, "dasfsdg")
 	return s.FEN()
 }
 
@@ -196,7 +174,7 @@ func playerStateMsg(p player.Player) []any {
 
 func (s State) Print() {
 	clearScreen()
-	s.Board.Print()
+	s.board.Print()
 	fmt.Println(s)
 }
 
@@ -300,7 +278,7 @@ func (s *State) MakeMove(m move.Move) {
 	s.handleCastle(m)
 	s.handleUpdateCastlingRights(m)
 	s.handlePromotion(m)
-	s.Board = s.nextBoard
+	s.board = s.nextBoard
 
 	if s.ActiveColor.Color() == piece.Black {
 		s.FullmoveNumber++
@@ -342,4 +320,29 @@ func (s *State) PlayMoves(moves []string) {
 	for _, m := range moves {
 		s.MakeMove(move.NewMove(m[:2], m[2:]))
 	}
+}
+
+func (state State) GeneratePossibleMoves() []move.Move {
+	moves := []move.Move{}
+
+	for _, m := range generateTmpMoves(state) {
+		state.MakeMove(m)
+
+		var capturedKing bool
+		for _, nextMove := range generateTmpMoves(state) {
+			if state.Piece(nextMove.Target) == piece.King*state.ActiveColor*-1 {
+				capturedKing = true
+				break
+			}
+		}
+
+		if !capturedKing {
+			moves = append(moves, m)
+		}
+
+		state.Undo()
+
+	}
+
+	return moves
 }

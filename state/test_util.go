@@ -20,6 +20,10 @@ func (t testPlayer) ChoosePromotionPiece(square string) piece.Piece {
 	return piece.Queen
 }
 
+func (t testPlayer) IsBot() bool {
+	return true
+}
+
 func NewTestStateFromFEN(fen string) *State {
 	s := StartingStateFromFEN(fen, testPlayer{}, testPlayer{})
 

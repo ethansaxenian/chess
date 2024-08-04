@@ -10,8 +10,6 @@ import (
 	"strings"
 
 	"github.com/ethansaxenian/chess/assert"
-	"github.com/ethansaxenian/chess/generator"
-	"github.com/ethansaxenian/chess/piece"
 	"github.com/ethansaxenian/chess/player"
 	"github.com/ethansaxenian/chess/state"
 )
@@ -39,29 +37,17 @@ func initLogger(value string) {
 	slog.SetDefault(slog.New(h))
 }
 
-func mainLoop(state *state.State) {
-	state.Print()
-	possibleMoves := generator.GeneratePossibleMoves(*state)
+func mainLoop(s *state.State) {
+	s.Print()
+	possibleMoves := s.GeneratePossibleMoves()
 	assert.AddContext("possible moves", possibleMoves)
-	assert.AddContext("FEN", state.FEN())
-	assert.AddContext("moves", state.Moves)
-
-	for _, m := range possibleMoves {
-		assert.Assert(state.Piece(m.Target).Type() != piece.King, fmt.Sprintf("wtf: %s", m))
-	}
+	assert.AddContext("FEN", s.FEN())
+	assert.AddContext("moves", s.Moves)
 
 	if len(possibleMoves) == 0 {
-		fmt.Println(state.ActivePlayerRepr(), "to play")
-		state.ActiveColor *= -1
+		fmt.Println(s.ActivePlayerRepr(), "to play")
 
-		var checkmate bool
-		for _, m := range generator.GeneratePossibleMoves(*state) {
-			if state.Piece(m.Target) == piece.King*state.ActiveColor*-1 {
-				checkmate = true
-				break
-			}
-		}
-		if checkmate {
+		if s.IsCheck() {
 			fmt.Println("checkmate!")
 		} else {
 			fmt.Println("draw!")
@@ -70,14 +56,14 @@ func mainLoop(state *state.State) {
 		os.Exit(0)
 	}
 
-	if state.HalfmoveClock == 100 {
+	if s.HalfmoveClock == 100 {
 		fmt.Println("draw!")
 		os.Exit(0)
 	}
 
-	m := state.ActivePlayer().GetMove(possibleMoves)
+	m := s.ActivePlayer().GetMove(possibleMoves)
 	assert.Assert(slices.Contains(possibleMoves, m), fmt.Sprintf("%s not in possibleMoves", m))
-	state.MakeMove(m)
+	s.MakeMove(m)
 }
 
 func main() {

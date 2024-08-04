@@ -27,29 +27,6 @@ type State struct {
 	FullmoveNumber  int
 }
 
-func (s State) FENS_internal() []string {
-	return s.fens
-}
-
-func (s State) DeepCopy() *State {
-	n := &State{Players: make(map[piece.Piece]player.Player), Castling: make(map[piece.Piece][2]bool)}
-	for color, player := range s.Players {
-		n.Players[color] = player
-	}
-	for color, castlingRights := range s.Castling {
-		n.Castling[color] = castlingRights
-	}
-	n.EnPassantTarget = s.EnPassantTarget
-	n.Moves = append(n.Moves, s.Moves...)
-	n.Board = s.Board
-	n.nextBoard = s.nextBoard
-	n.ActiveColor = s.ActiveColor
-	n.HalfmoveClock = s.HalfmoveClock
-	n.FullmoveNumber = s.FullmoveNumber
-
-	return n
-}
-
 func StartingState(white, black player.Player) *State {
 	return StartingStateFromFEN(board.StartingFEN, white, black)
 }
@@ -342,4 +319,46 @@ func (s *State) PlayMoves(moves []string) {
 	for _, m := range moves {
 		s.MakeMove(move.NewMove(m[:2], m[2:]))
 	}
+}
+
+func (s State) GeneratePossibleMoves() []move.Move {
+	moves := []move.Move{}
+
+	for _, m := range generateTmpMoves(s) {
+		s.MakeMove(m)
+
+		var capturedKing bool
+		for _, nextMove := range generateTmpMoves(s) {
+			if s.Piece(nextMove.Target) == piece.King*s.ActiveColor*-1 {
+				capturedKing = true
+				break
+			}
+		}
+
+		if !capturedKing {
+			moves = append(moves, m)
+		}
+
+		s.Undo()
+
+	}
+
+	return moves
+}
+
+func (s *State) IsCheck() bool {
+	activeColor := s.ActiveColor
+
+	s.ActiveColor *= -1
+
+	var checkmate bool
+	for _, m := range s.GeneratePossibleMoves() {
+		if s.Piece(m.Target) == piece.King*activeColor {
+			checkmate = true
+			break
+		}
+	}
+
+	s.ActiveColor = activeColor
+	return checkmate
 }

@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 	"slices"
-	"strconv"
 	"strings"
 
 	"github.com/ethansaxenian/chess/move"
@@ -48,24 +47,31 @@ func (h HumanPlayer) State() map[string]any {
 }
 
 func (h HumanPlayer) ChoosePromotionPiece(square string) piece.Piece {
-	fmt.Printf("Promote %s on %s\n", piece.Pawn, square)
-	for i, p := range piece.PossiblePromotions {
-		fmt.Printf("%d: %s\n", i, p)
-	}
-	for {
-		input := getInput()
+	// TODO: promotions
+	return piece.Queen
 
-		i, err := strconv.Atoi(input)
-		if err != nil {
-			continue
-		}
-
-		if i >= 0 && i < len(piece.PossiblePromotions) {
-			return piece.PossiblePromotions[i]
-		}
-	}
+	// fmt.Printf("Promote %s on %s\n", piece.Pawn, square)
+	// for i, p := range piece.PossiblePromotions {
+	// 	fmt.Printf("%d: %s\n", i, p)
+	// }
+	// for {
+	// 	input := getInput()
+	//
+	// 	i, err := strconv.Atoi(input)
+	// 	if err != nil {
+	// 		continue
+	// 	}
+	//
+	// 	if i >= 0 && i < len(piece.PossiblePromotions) {
+	// 		return piece.PossiblePromotions[i]
+	// 	}
+	// }
 }
 
 func (h HumanPlayer) String() string {
 	return h.name
+}
+
+func (h HumanPlayer) IsBot() bool {
+	return false
 }

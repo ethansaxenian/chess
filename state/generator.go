@@ -1,4 +1,4 @@
-package generator
+package state
 
 import (
 	"fmt"
@@ -8,7 +8,6 @@ import (
 	"github.com/ethansaxenian/chess/board"
 	"github.com/ethansaxenian/chess/move"
 	"github.com/ethansaxenian/chess/piece"
-	"github.com/ethansaxenian/chess/state"
 )
 
 var precomputedPieceMoves = map[piece.Piece]map[string][]string{}
@@ -36,41 +35,16 @@ func init() {
 	}
 }
 
-func GeneratePossibleMoves(state state.State) []move.Move {
+func generateTmpMoves(s State) []move.Move {
 	moves := []move.Move{}
 
-	for _, m := range generateTmpMoves(state) {
-		state.MakeMove(m)
-
-		var capturedKing bool
-		for _, nextMove := range generateTmpMoves(state) {
-			if state.Piece(nextMove.Target) == piece.King*state.ActiveColor*-1 {
-				capturedKing = true
-				break
-			}
-		}
-
-		if !capturedKing {
-			moves = append(moves, m)
-		}
-
-		state.Undo()
-
-	}
-
-	return moves
-}
-
-func generateTmpMoves(state state.State) []move.Move {
-	moves := []move.Move{}
-
-	for source, p := range state.Board.Squares() {
+	for source, p := range s.Board.Squares() {
 		if p == piece.Empty {
 			continue
 		}
 
 		for _, target := range precomputedPieceMoves[p][source] {
-			if validateMove(state, source, target) {
+			if validateMove(s, source, target) {
 				moves = append(moves, move.NewMove(source, target))
 			}
 		}
@@ -81,21 +55,21 @@ func generateTmpMoves(state state.State) []move.Move {
 	return moves
 }
 
-func validateMove(state state.State, src, target string) bool {
-	srcPiece := state.Piece(src)
-	targetPiece := state.Piece(target)
+func validateMove(s State, src, target string) bool {
+	srcPiece := s.Piece(src)
+	targetPiece := s.Piece(target)
 
 	// src is my color
-	if srcPiece.Color() != state.ActiveColor {
+	if srcPiece.Color() != s.ActiveColor {
 		return false
 	}
 
 	// target is not my color
-	if targetPiece.Color() == state.ActiveColor {
+	if targetPiece.Color() == s.ActiveColor {
 		return false
 	}
 
-	if !validatePieceMoveWithState(state, srcPiece, src, target) {
+	if !validatePieceMoveWithState(s, srcPiece, src, target) {
 		return false
 	}
 
@@ -224,7 +198,7 @@ func validateKingMove(src, target string) bool {
 	return true
 }
 
-func validatePieceMoveWithState(s state.State, srcPiece piece.Piece, src, target string) bool {
+func validatePieceMoveWithState(s State, srcPiece piece.Piece, src, target string) bool {
 	switch srcPiece.Type() {
 	case piece.Pawn:
 		return validatePawnMoveWithState(s, src, target)
@@ -243,7 +217,7 @@ func validatePieceMoveWithState(s state.State, srcPiece piece.Piece, src, target
 	}
 }
 
-func validatePawnMoveWithState(s state.State, src, target string) bool {
+func validatePawnMoveWithState(s State, src, target string) bool {
 	srcPiece := s.Piece(src)
 	srcColor := srcPiece.Color()
 	targetPiece := s.Piece(target)
@@ -275,7 +249,7 @@ func validatePawnMoveWithState(s state.State, src, target string) bool {
 	return true
 }
 
-func validateBishopMoveWithState(s state.State, src, target string) bool {
+func validateBishopMoveWithState(s State, src, target string) bool {
 	sf, sr := board.SquareToCoords(src)
 	tf, tr := board.SquareToCoords(target)
 
@@ -319,7 +293,7 @@ func validateBishopMoveWithState(s state.State, src, target string) bool {
 
 }
 
-func validateRookMoveWithState(s state.State, src, target string) bool {
+func validateRookMoveWithState(s State, src, target string) bool {
 	sf, sr := board.SquareToCoords(src)
 	tf, tr := board.SquareToCoords(target)
 
@@ -360,11 +334,11 @@ func validateRookMoveWithState(s state.State, src, target string) bool {
 	}
 }
 
-func validateQueenMoveWithState(s state.State, src, target string) bool {
+func validateQueenMoveWithState(s State, src, target string) bool {
 	return validateBishopMoveWithState(s, src, target) || validateRookMoveWithState(s, src, target)
 }
 
-func validateKingMoveWithState(s state.State, src, target string) bool {
+func validateKingMoveWithState(s State, src, target string) bool {
 	color := s.Piece(src).Color()
 
 	startingSquare := piece.StartingKingSquares[color]

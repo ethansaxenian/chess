@@ -346,3 +346,18 @@ func (state State) GeneratePossibleMoves() []move.Move {
 
 	return moves
 }
+
+func (s *State) IsCheck() bool {
+	s.ActiveColor *= -1
+
+	var check bool
+	for _, m := range s.GeneratePossibleMoves() {
+		if s.Piece(m.Target) == piece.King*s.ActiveColor*-1 {
+			check = true
+			break
+		}
+	}
+	s.ActiveColor *= -1
+
+	return check
+}

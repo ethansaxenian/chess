@@ -51,19 +51,11 @@ func mainLoop(state *state.State) {
 
 	if len(possibleMoves) == 0 {
 		fmt.Println(state.ActivePlayerRepr(), "to play")
-		state.ActiveColor *= -1
 
-		var checkmate bool
-		for _, m := range state.GeneratePossibleMoves() {
-			if state.Piece(m.Target) == piece.King*state.ActiveColor*-1 {
-				checkmate = true
-				break
-			}
-		}
-		if checkmate {
+		if state.IsCheck() {
 			fmt.Println("checkmate!")
 		} else {
-			fmt.Println("draw!")
+			fmt.Println("stalemate!")
 		}
 
 		os.Exit(0)

@@ -18,7 +18,7 @@ type RandoBot struct {
 func NewRandoBot(opts ...func(*RandoBot)) *RandoBot {
 	defaultSeed := time.Now().UnixNano()
 	r := rand.New(rand.NewSource(defaultSeed))
-	rb := &RandoBot{r, defaultSeed, 100 * time.Millisecond}
+	rb := &RandoBot{r, defaultSeed, 0}
 
 	for _, opt := range opts {
 		opt(rb)

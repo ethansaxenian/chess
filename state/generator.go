@@ -35,16 +35,16 @@ func init() {
 	}
 }
 
-func generateTmpMoves(s State) []move.Move {
+func generateTmpMoves(state State) []move.Move {
 	moves := []move.Move{}
 
-	for source, p := range s.board.Squares() {
+	for source, p := range state.board.Squares() {
 		if p == piece.Empty {
 			continue
 		}
 
 		for _, target := range precomputedPieceMoves[p][source] {
-			if validateMove(s, source, target) {
+			if validateMove(state, source, target) {
 				moves = append(moves, move.NewMove(source, target))
 			}
 		}
@@ -55,21 +55,21 @@ func generateTmpMoves(s State) []move.Move {
 	return moves
 }
 
-func validateMove(s State, src, target string) bool {
-	srcPiece := s.Piece(src)
-	targetPiece := s.Piece(target)
+func validateMove(state State, src, target string) bool {
+	srcPiece := state.Piece(src)
+	targetPiece := state.Piece(target)
 
 	// src is my color
-	if srcPiece.Color() != s.ActiveColor {
+	if srcPiece.Color() != state.ActiveColor {
 		return false
 	}
 
 	// target is not my color
-	if targetPiece.Color() == s.ActiveColor {
+	if targetPiece.Color() == state.ActiveColor {
 		return false
 	}
 
-	if !validatePieceMoveWithState(s, srcPiece, src, target) {
+	if !validatePieceMoveWithState(state, srcPiece, src, target) {
 		return false
 	}
 

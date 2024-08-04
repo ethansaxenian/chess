@@ -38,7 +38,7 @@ func init() {
 func generateTmpMoves(s State) []move.Move {
 	moves := []move.Move{}
 
-	for source, p := range s.Board.Squares() {
+	for source, p := range s.board.Squares() {
 		if p == piece.Empty {
 			continue
 		}

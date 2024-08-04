@@ -46,7 +46,7 @@ func TestHandleEnPassantNoCapture(t *testing.T) {
 func TestLoadFen(t *testing.T) {
 	s := NewTestStateFromFEN(board.StartingFEN)
 
-	assert.Equal(t, strings.Fields(board.StartingFEN)[0], s.Board.FEN())
+	assert.Equal(t, strings.Fields(board.StartingFEN)[0], s.board.FEN())
 	assert.Equal(t, piece.White, s.ActiveColor)
 	assert.Equal(t, [2]bool{true, true}, s.Castling[piece.White])
 	assert.Equal(t, [2]bool{true, true}, s.Castling[piece.Black])

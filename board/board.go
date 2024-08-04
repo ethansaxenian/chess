@@ -148,7 +148,6 @@ func (b Chessboard) String() string {
 			} else if p > 0 {
 				pieceColor = whitePiece
 			}
-
 			var squareColor string
 			if (rank%2 == 0 && file%2 != 0) || (rank%2 != 0 && file%2 == 0) {
 				squareColor = whiteSquare

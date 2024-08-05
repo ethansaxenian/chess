@@ -44,8 +44,9 @@ func generateTmpMoves(state State) []move.Move {
 		}
 
 		for _, target := range precomputedPieceMoves[p][source] {
-			if validateMove(state, source, target) {
-				moves = append(moves, move.NewMove(source, target))
+			m := move.NewMove(source, target)
+			if validateMove(state, m) {
+				moves = append(moves, m)
 			}
 		}
 	}
@@ -55,9 +56,9 @@ func generateTmpMoves(state State) []move.Move {
 	return moves
 }
 
-func validateMove(state State, src, target string) bool {
-	srcPiece := state.Piece(src)
-	targetPiece := state.Piece(target)
+func validateMove(state State, m move.Move) bool {
+	srcPiece := state.Piece(m.Source)
+	targetPiece := state.Piece(m.Target)
 
 	// src is my color
 	if srcPiece.Color() != state.ActiveColor {
@@ -69,7 +70,7 @@ func validateMove(state State, src, target string) bool {
 		return false
 	}
 
-	if !validatePieceMoveWithState(state, srcPiece, src, target) {
+	if !validatePieceMoveWithState(state, srcPiece, m) {
 		return false
 	}
 
@@ -198,39 +199,50 @@ func validateKingMove(src, target string) bool {
 	return true
 }
 
-func validatePieceMoveWithState(s State, srcPiece piece.Piece, src, target string) bool {
+func validatePieceMoveWithState(s State, srcPiece piece.Piece, m move.Move) bool {
 	switch srcPiece.Type() {
 	case piece.Pawn:
-		return validatePawnMoveWithState(s, src, target)
+		return validatePawnMoveWithState(s, m)
 	case piece.Knight:
 		return true
 	case piece.Bishop:
-		return validateBishopMoveWithState(s, src, target)
+		return validateBishopMoveWithState(s, m)
 	case piece.Rook:
-		return validateRookMoveWithState(s, src, target)
+		return validateRookMoveWithState(s, m)
 	case piece.Queen:
-		return validateQueenMoveWithState(s, src, target)
+		return validateQueenMoveWithState(s, m)
 	case piece.King:
-		return validateKingMoveWithState(s, src, target)
+		return validateKingMoveWithState(s, m)
 	default:
 		return false
 	}
 }
 
-func validatePawnMoveWithState(s State, src, target string) bool {
-	srcPiece := s.Piece(src)
+func validatePawnMoveWithState(s State, m move.Move) bool {
+	srcPiece := s.Piece(m.Source)
 	srcColor := srcPiece.Color()
-	targetPiece := s.Piece(target)
+	targetPiece := s.Piece(m.Target)
 
-	isCaptureAttempt := src[0] != target[0]
-	isEnPassantAttempt := s.EnPassantTarget == target
+	var enPassantRanks = map[int]piece.Piece{
+		3: piece.White,
+		6: piece.Black,
+	}
+
+	isCaptureAttempt := m.SourceFile() != m.TargetFile()
+	isEnPassantAttempt := s.EnPassantTarget == m.Target
 	isOppositeColorPiece := targetPiece.Color() == srcColor*-1
-	isDoubleMove := int(target[1])-int(src[1]) == 2*int(srcColor)
-	jumpsOverPiece := s.Piece(board.AddRank(src, int(srcColor))) != piece.Empty
+	isDoubleMove := m.TargetRank()-m.SourceRank() == 2*int(srcColor)
+	jumpsOverPiece := s.Piece(board.AddRank(m.Source, int(srcColor))) != piece.Empty
 
 	if isCaptureAttempt {
-		if isEnPassantAttempt && targetPiece != piece.Empty {
-			return false
+		if isEnPassantAttempt {
+			if targetPiece != piece.Empty {
+				return false
+			}
+
+			if enPassantRanks[m.TargetRank()] == srcColor {
+				return false
+			}
 		}
 
 		if !isEnPassantAttempt && !isOppositeColorPiece {
@@ -249,9 +261,9 @@ func validatePawnMoveWithState(s State, src, target string) bool {
 	return true
 }
 
-func validateBishopMoveWithState(s State, src, target string) bool {
-	sf, sr := board.SquareToCoords(src)
-	tf, tr := board.SquareToCoords(target)
+func validateBishopMoveWithState(s State, m move.Move) bool {
+	sf, sr := int(m.SourceFile()), m.SourceRank()
+	tf, tr := int(m.TargetFile()), m.TargetRank()
 
 	if sf == tf || sr == tr {
 		return false
@@ -271,10 +283,10 @@ func validateBishopMoveWithState(s State, src, target string) bool {
 		dr = -1
 	}
 
-	srcPiece := s.Piece(src)
+	srcPiece := s.Piece(m.Source)
 
 	for f, r := sf+df, sr+dr; ; f, r = f+df, r+dr {
-		assert.Assert(f >= 'a' && f <= 'h' && r >= 1 && r <= 8, fmt.Sprintf("%s%s: %d/%d", src, target, df, dr))
+		assert.Assert(f >= 'a' && f <= 'h' && r >= 1 && r <= 8, fmt.Sprintf("%s%s: %d/%d", m.Source, m.Target, df, dr))
 		currPiece := s.Piece(board.CoordsToSquare(f, r))
 
 		if f == tf && r == tr {
@@ -293,9 +305,9 @@ func validateBishopMoveWithState(s State, src, target string) bool {
 
 }
 
-func validateRookMoveWithState(s State, src, target string) bool {
-	sf, sr := board.SquareToCoords(src)
-	tf, tr := board.SquareToCoords(target)
+func validateRookMoveWithState(s State, m move.Move) bool {
+	sf, sr := int(m.SourceFile()), m.SourceRank()
+	tf, tr := int(m.TargetFile()), m.TargetRank()
 
 	if sf != tf && sr != tr {
 		return false
@@ -315,7 +327,7 @@ func validateRookMoveWithState(s State, src, target string) bool {
 		dr = 1
 	}
 
-	srcPiece := s.Piece(src)
+	srcPiece := s.Piece(m.Source)
 
 	for f, r := sf+df, sr+dr; ; f, r = f+df, r+dr {
 		currPiece := s.Piece(board.CoordsToSquare(f, r))
@@ -334,22 +346,22 @@ func validateRookMoveWithState(s State, src, target string) bool {
 	}
 }
 
-func validateQueenMoveWithState(s State, src, target string) bool {
-	return validateBishopMoveWithState(s, src, target) || validateRookMoveWithState(s, src, target)
+func validateQueenMoveWithState(s State, m move.Move) bool {
+	return validateBishopMoveWithState(s, m) || validateRookMoveWithState(s, m)
 }
 
-func validateKingMoveWithState(s State, src, target string) bool {
-	color := s.Piece(src).Color()
+func validateKingMoveWithState(s State, m move.Move) bool {
+	color := s.Piece(m.Source).Color()
 
 	startingSquare := piece.StartingKingSquares[color]
 	castlingSquares := piece.CastlingSquares[color]
 	intermediateSquares := piece.CastlingIntermediateSquares[color]
 	castlingRights := s.Castling[color]
 
-	if src == startingSquare {
+	if m.Source == startingSquare {
 		for i := range []int{0, 1} {
 			// not trying to castle
-			if target != castlingSquares[i] {
+			if m.Target != castlingSquares[i] {
 				continue
 			}
 

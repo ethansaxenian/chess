@@ -23,6 +23,7 @@ type model struct {
 	*state.State
 	validMoves []move.Move
 	input      textinput.Model
+	check      bool
 }
 
 func initialModel() model {
@@ -31,13 +32,16 @@ func initialModel() model {
 	ti.CharLimit = 4
 	ti.Width = 4
 
-	s := state.StartingState(player.NewHumanPlayer("human"), player.NewHumanPlayer("foo"))
-	// s := state.StartingState(player.NewRandoBot(), player.NewRandoBot())
+	// s := state.StartingState(player.NewHumanPlayer("human"), player.NewHumanPlayer("foo"))
+	white := player.NewRandoBot(player.WithSeed(10))
+	black := player.NewRandoBot(player.WithSeed(1722405359723887000))
+	s := state.StartingState(white, black)
 	return model{
 		State: s,
 		// State: state.StartingState(player.NewRandoBot(), player.NewHumanPlayer("")),
 		input:      ti,
 		validMoves: s.GeneratePossibleMoves(),
+		check:      false,
 	}
 }
 
@@ -53,9 +57,8 @@ func (m model) View() string {
 	view := m.Board.String() + m.FEN() + "\n"
 
 	view += fmt.Sprintf("%s to play\n\n", m.ActivePlayerRepr())
-	view += fmt.Sprintf("%v\n\n", m.validMoves)
 
-	if m.IsCheck() {
+	if m.check {
 		view += "check!\n\n"
 	}
 
@@ -127,7 +130,9 @@ func (m *model) onMove(mv move.Move) (tea.Model, tea.Cmd) {
 	}
 
 	m.validMoves = m.GeneratePossibleMoves()
-	if len(m.validMoves) == 0 && m.IsCheck() {
+	m.check = m.IsCheck()
+
+	if len(m.validMoves) == 0 && m.check {
 		return m, tea.Quit
 	}
 
@@ -138,11 +143,12 @@ func (m *model) onMove(mv move.Move) (tea.Model, tea.Cmd) {
 }
 
 func main() {
-	p := tea.NewProgram(initialModel())
-	_, err := p.Run()
-	if err != nil {
+	m := initialModel()
+	p := tea.NewProgram(m)
+	if _, err := p.Run(); err != nil {
 		fmt.Printf("Alas, there's been an error: %v", err)
 		os.Exit(1)
 	}
 
+	fmt.Println(m.check)
 }

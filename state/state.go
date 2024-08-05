@@ -14,6 +14,32 @@ import (
 
 const noEnPassantTarget = "-"
 
+type gameOverState int
+
+const (
+	no gameOverState = iota
+	whiteWin
+	blackWin
+	stalemate
+	draw
+)
+
+func (g gameOverState) String() string {
+	switch g {
+	case whiteWin:
+		return "white wins!"
+	case blackWin:
+		return "black wins!"
+	case stalemate:
+		return "stalemate"
+	case draw:
+		return "draw"
+	default:
+		assert.Raise("The game is not over?")
+		return ""
+	}
+}
+
 type State struct {
 	Players         map[piece.Piece]player.Player
 	Castling        map[piece.Piece][2]bool
@@ -360,4 +386,26 @@ func (s *State) IsCheck() bool {
 	s.ActiveColor *= -1
 
 	return check
+}
+
+func (s *State) CheckGameOver() (gameOverState, bool) {
+	validMoves := s.GeneratePossibleMoves()
+	if len(validMoves) == 0 {
+		if s.IsCheck() {
+			switch s.ActiveColor {
+			case piece.White:
+				return blackWin, true
+			case piece.Black:
+				return whiteWin, true
+			default:
+				return no, false
+			}
+		} else {
+			return stalemate, true
+		}
+	} else if s.HalfmoveClock >= 100 {
+		return draw, true
+	} else {
+		return no, false
+	}
 }

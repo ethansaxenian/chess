@@ -12,6 +12,7 @@ import (
 	"github.com/ethansaxenian/chess/assert"
 	"github.com/ethansaxenian/chess/player"
 	"github.com/ethansaxenian/chess/state"
+	"github.com/ethansaxenian/chess/tui"
 )
 
 func initLogger(value string) {
@@ -38,28 +39,16 @@ func initLogger(value string) {
 }
 
 func mainLoop(state *state.State) {
+	if res, over := state.CheckGameOver(); over {
+		fmt.Println(res)
+		os.Exit(0)
+	}
+
 	state.Print()
 	possibleMoves := state.GeneratePossibleMoves()
 	assert.AddContext("possible moves", possibleMoves)
 	assert.AddContext("FEN", state.FEN())
 	assert.AddContext("moves", state.Moves)
-
-	if len(possibleMoves) == 0 {
-		fmt.Println(state.ActivePlayerRepr(), "to play")
-
-		if state.IsCheck() {
-			fmt.Println("checkmate!")
-		} else {
-			fmt.Println("stalemate!")
-		}
-
-		os.Exit(0)
-	}
-
-	if state.HalfmoveClock == 100 {
-		fmt.Println("draw!")
-		os.Exit(0)
-	}
 
 	m := state.ActivePlayer().GetMove(possibleMoves)
 	assert.Assert(slices.Contains(possibleMoves, m), fmt.Sprintf("%s not in possibleMoves", m))
@@ -74,12 +63,8 @@ func main() {
 
 	// white := player.NewHumanPlayer("human")
 	// black := player.NewHumanPlayer("human")
-	white := player.NewRandoBot(player.WithSeed(10))
-	black := player.NewRandoBot(player.WithSeed(1722405359723887000))
+	white := player.NewRandoBot()
+	black := player.NewRandoBot()
 
-	state := state.StartingState(white, black)
-
-	for {
-		mainLoop(state)
-	}
+	tui.RunTUI(white, black)
 }

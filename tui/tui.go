@@ -1,4 +1,4 @@
-package main
+package tui
 
 import (
 	"fmt"
@@ -21,27 +21,18 @@ func botTurn() tea.Msg {
 
 type model struct {
 	*state.State
-	validMoves []move.Move
-	input      textinput.Model
-	check      bool
+	input textinput.Model
 }
 
-func initialModel() model {
+func initialModel(white, black player.Player) model {
 	ti := textinput.New()
 	ti.Focus()
 	ti.CharLimit = 4
 	ti.Width = 4
 
-	// s := state.StartingState(player.NewHumanPlayer("human"), player.NewHumanPlayer("foo"))
-	white := player.NewRandoBot(player.WithSeed(10))
-	black := player.NewRandoBot(player.WithSeed(1722405359723887000))
-	s := state.StartingState(white, black)
 	return model{
-		State: s,
-		// State: state.StartingState(player.NewRandoBot(), player.NewHumanPlayer("")),
-		input:      ti,
-		validMoves: s.GeneratePossibleMoves(),
-		check:      false,
+		State: state.StartingState(white, black),
+		input: ti,
 	}
 }
 
@@ -58,7 +49,7 @@ func (m model) View() string {
 
 	view += fmt.Sprintf("%s to play\n\n", m.ActivePlayerRepr())
 
-	if m.check {
+	if m.IsCheck() {
 		view += "check!\n\n"
 	}
 
@@ -102,7 +93,8 @@ func (m model) onKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 }
 
 func (m model) getBotMove() (tea.Model, tea.Cmd) {
-	mv := m.ActivePlayer().GetMove(m.validMoves)
+	validMoves := m.GeneratePossibleMoves()
+	mv := m.ActivePlayer().GetMove(validMoves)
 	return m, func() tea.Msg { return mv }
 }
 
@@ -112,7 +104,8 @@ func (m model) onEnter() (tea.Model, tea.Cmd) {
 	if len(val) == 4 {
 		mv := move.NewMove(val[:2], val[2:])
 
-		if slices.Contains(m.validMoves, mv) {
+		validMoves := m.GeneratePossibleMoves()
+		if slices.Contains(validMoves, mv) {
 			return m, func() tea.Msg { return mv }
 		}
 	}
@@ -129,10 +122,9 @@ func (m *model) onMove(mv move.Move) (tea.Model, tea.Cmd) {
 		return m, tea.Quit
 	}
 
-	m.validMoves = m.GeneratePossibleMoves()
-	m.check = m.IsCheck()
+	validMoves := m.GeneratePossibleMoves()
 
-	if len(m.validMoves) == 0 && m.check {
+	if len(validMoves) == 0 && m.IsCheck() {
 		return m, tea.Quit
 	}
 
@@ -142,13 +134,15 @@ func (m *model) onMove(mv move.Move) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
-func main() {
-	m := initialModel()
+func RunTUI(white, black player.Player) {
+	m := initialModel(white, black)
 	p := tea.NewProgram(m)
 	if _, err := p.Run(); err != nil {
 		fmt.Printf("Alas, there's been an error: %v", err)
 		os.Exit(1)
 	}
 
-	fmt.Println(m.check)
+	if res, over := m.CheckGameOver(); over {
+		fmt.Println(res)
+	}
 }

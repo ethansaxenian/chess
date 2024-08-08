@@ -63,3 +63,7 @@ func (r RandoBot) ChoosePromotionPiece(square string) piece.Piece {
 func (r RandoBot) String() string {
 	return fmt.Sprintf("RandoBot%d", r.seed)
 }
+
+func (r RandoBot) IsBot() bool {
+	return true
+}

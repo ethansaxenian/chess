@@ -155,187 +155,187 @@ func TestValidatePrecomputedMoves(t *testing.T) {
 
 func TestValidatePawnMoveWithStateValid(t *testing.T) {
 	s := *NewTestStateFromFEN("8/8/8/3ppp2/3PPP2/8/8/8 w - - 0 1")
-	assert.True(t, validatePawnMoveWithState(s, "e4", "d5"), "e4 d5")
-	assert.True(t, validatePawnMoveWithState(s, "e4", "f5"), "e4 f5")
-	assert.True(t, validatePawnMoveWithState(s, "e5", "d4"), "e5 d4")
-	assert.True(t, validatePawnMoveWithState(s, "e5", "f4"), "e5 f4")
+	assert.True(t, validatePawnMoveWithState(s, move.NewMove("e4", "d5")), "e4 d5")
+	assert.True(t, validatePawnMoveWithState(s, move.NewMove("e4", "f5")), "e4 f5")
+	assert.True(t, validatePawnMoveWithState(s, move.NewMove("e5", "d4")), "e5 d4")
+	assert.True(t, validatePawnMoveWithState(s, move.NewMove("e5", "f4")), "e5 f4")
 }
 
 func TestValidatePawnMoveWithStateInvalid(t *testing.T) {
 	s := *NewTestStateFromFEN("8/8/8/3ppp2/3PPP2/8/8/8 w - - 0 1")
-	assert.False(t, validatePawnMoveWithState(s, "e4", "e5"), "e4 e5")
-	assert.False(t, validatePawnMoveWithState(s, "d4", "c5"), "d4 c5")
-	assert.False(t, validatePawnMoveWithState(s, "e5", "e4"), "e5 e4")
-	assert.False(t, validatePawnMoveWithState(s, "d5", "c4"), "d5 c4")
+	assert.False(t, validatePawnMoveWithState(s, move.NewMove("e4", "e5")), "e4 e5")
+	assert.False(t, validatePawnMoveWithState(s, move.NewMove("d4", "c5")), "d4 c5")
+	assert.False(t, validatePawnMoveWithState(s, move.NewMove("e5", "e4")), "e5 e4")
+	assert.False(t, validatePawnMoveWithState(s, move.NewMove("d5", "c4")), "d5 c4")
 
 	s.LoadFEN("8/p7/n7/8/8/8/8/8 b - - 0 1")
-	assert.False(t, validatePawnMoveWithState(s, "a7", "a5"), "a7 a5")
+	assert.False(t, validatePawnMoveWithState(s, move.NewMove("a7", "a5")), "a7 a5")
 }
 
 func TestValidateBishopMoveWithStateValid(t *testing.T) {
 	s := *NewTestStateFromFEN("8/1p6/6P1/8/4B3/3P4/2p5/8 w - - 0 1")
-	assert.True(t, validateBishopMoveWithState(s, "e4", "d5"), "e4 d5")
-	assert.True(t, validateBishopMoveWithState(s, "e4", "c6"), "e4 c6")
-	assert.True(t, validateBishopMoveWithState(s, "e4", "b7"), "e4 b7")
-	assert.True(t, validateBishopMoveWithState(s, "e4", "f3"), "e4 f3")
-	assert.True(t, validateBishopMoveWithState(s, "e4", "f5"), "e4 f5")
-	assert.True(t, validateBishopMoveWithState(s, "e4", "g2"), "e4 g2")
-	assert.True(t, validateBishopMoveWithState(s, "e4", "h1"), "e4 h1")
+	assert.True(t, validateBishopMoveWithState(s, move.NewMove("e4", "d5")), "e4 d5")
+	assert.True(t, validateBishopMoveWithState(s, move.NewMove("e4", "c6")), "e4 c6")
+	assert.True(t, validateBishopMoveWithState(s, move.NewMove("e4", "b7")), "e4 b7")
+	assert.True(t, validateBishopMoveWithState(s, move.NewMove("e4", "f3")), "e4 f3")
+	assert.True(t, validateBishopMoveWithState(s, move.NewMove("e4", "f5")), "e4 f5")
+	assert.True(t, validateBishopMoveWithState(s, move.NewMove("e4", "g2")), "e4 g2")
+	assert.True(t, validateBishopMoveWithState(s, move.NewMove("e4", "h1")), "e4 h1")
 }
 
 func TestValidateBishopMoveWithStateInvalid(t *testing.T) {
 	s := *NewTestStateFromFEN("8/1p6/6P1/8/4B3/3P4/2p5/8 w - - 0 1")
-	assert.False(t, validateBishopMoveWithState(s, "e4", "g6"), "e4 g6")
-	assert.False(t, validateBishopMoveWithState(s, "e4", "h7"), "e4 h7")
-	assert.False(t, validateBishopMoveWithState(s, "e4", "a8"), "e4 a8")
-	assert.False(t, validateBishopMoveWithState(s, "e4", "d3"), "e4 d3")
-	assert.False(t, validateBishopMoveWithState(s, "e4", "c2"), "e4 c2")
-	assert.False(t, validateBishopMoveWithState(s, "e4", "b1"), "e4 b1")
+	assert.False(t, validateBishopMoveWithState(s, move.NewMove("e4", "g6")), "e4 g6")
+	assert.False(t, validateBishopMoveWithState(s, move.NewMove("e4", "h7")), "e4 h7")
+	assert.False(t, validateBishopMoveWithState(s, move.NewMove("e4", "a8")), "e4 a8")
+	assert.False(t, validateBishopMoveWithState(s, move.NewMove("e4", "d3")), "e4 d3")
+	assert.False(t, validateBishopMoveWithState(s, move.NewMove("e4", "c2")), "e4 c2")
+	assert.False(t, validateBishopMoveWithState(s, move.NewMove("e4", "b1")), "e4 b1")
 }
 
 func TestValidateRookMoveWithStateValid(t *testing.T) {
 	s := *NewTestStateFromFEN("8/8/4P3/8/1Pp1R3/8/8/4p3 w - - 1 1")
-	assert.True(t, validateRookMoveWithState(s, "e4", "e5"), "e4 e5")
-	assert.True(t, validateRookMoveWithState(s, "e4", "d4"), "e4 d4")
-	assert.True(t, validateRookMoveWithState(s, "e4", "c4"), "e4 c4")
-	assert.True(t, validateRookMoveWithState(s, "e4", "f4"), "e4 f4")
-	assert.True(t, validateRookMoveWithState(s, "e4", "g4"), "e4 g4")
-	assert.True(t, validateRookMoveWithState(s, "e4", "h4"), "e4 h4")
-	assert.True(t, validateRookMoveWithState(s, "e4", "e3"), "e4 e3")
-	assert.True(t, validateRookMoveWithState(s, "e4", "e2"), "e4 e2")
-	assert.True(t, validateRookMoveWithState(s, "e4", "e1"), "e4 e1")
+	assert.True(t, validateRookMoveWithState(s, move.NewMove("e4", "e5")), "e4 e5")
+	assert.True(t, validateRookMoveWithState(s, move.NewMove("e4", "d4")), "e4 d4")
+	assert.True(t, validateRookMoveWithState(s, move.NewMove("e4", "c4")), "e4 c4")
+	assert.True(t, validateRookMoveWithState(s, move.NewMove("e4", "f4")), "e4 f4")
+	assert.True(t, validateRookMoveWithState(s, move.NewMove("e4", "g4")), "e4 g4")
+	assert.True(t, validateRookMoveWithState(s, move.NewMove("e4", "h4")), "e4 h4")
+	assert.True(t, validateRookMoveWithState(s, move.NewMove("e4", "e3")), "e4 e3")
+	assert.True(t, validateRookMoveWithState(s, move.NewMove("e4", "e2")), "e4 e2")
+	assert.True(t, validateRookMoveWithState(s, move.NewMove("e4", "e1")), "e4 e1")
 }
 
 func TestValidateRookMoveWithStateInvalid(t *testing.T) {
 	s := *NewTestStateFromFEN("8/8/4P3/8/1Pp1R3/8/8/4p3 w - - 1 1")
-	assert.False(t, validateRookMoveWithState(s, "e4", "b4"), "e4 b4")
-	assert.False(t, validateRookMoveWithState(s, "e4", "a4"), "e4 a4")
-	assert.False(t, validateRookMoveWithState(s, "e4", "e6"), "e4 e6")
-	assert.False(t, validateRookMoveWithState(s, "e4", "e7"), "e4 e7")
-	assert.False(t, validateRookMoveWithState(s, "e4", "e8"), "e4 e8")
+	assert.False(t, validateRookMoveWithState(s, move.NewMove("e4", "b4")), "e4 b4")
+	assert.False(t, validateRookMoveWithState(s, move.NewMove("e4", "a4")), "e4 a4")
+	assert.False(t, validateRookMoveWithState(s, move.NewMove("e4", "e6")), "e4 e6")
+	assert.False(t, validateRookMoveWithState(s, move.NewMove("e4", "e7")), "e4 e7")
+	assert.False(t, validateRookMoveWithState(s, move.NewMove("e4", "e8")), "e4 e8")
 }
 
 func TestValidateQueenMoveWithStateValid(t *testing.T) {
 	s := *NewTestStateFromFEN("p7/1P2P3/8/5p2/1Pp1Q2p/8/2P3P1/1P6 w - - 1 1")
-	assert.True(t, validateQueenMoveWithState(s, "e4", "d5"), "e4 d5")
-	assert.True(t, validateQueenMoveWithState(s, "e4", "c6"), "e4 c6")
-	assert.True(t, validateQueenMoveWithState(s, "e4", "e5"), "e4 e5")
-	assert.True(t, validateQueenMoveWithState(s, "e4", "e6"), "e4 e6")
-	assert.True(t, validateQueenMoveWithState(s, "e4", "f5"), "e4 f5")
-	assert.True(t, validateQueenMoveWithState(s, "e4", "f4"), "e4 f4")
-	assert.True(t, validateQueenMoveWithState(s, "e4", "g4"), "e4 g4")
-	assert.True(t, validateQueenMoveWithState(s, "e4", "h4"), "e4 h4")
-	assert.True(t, validateQueenMoveWithState(s, "e4", "f3"), "e4 f3")
-	assert.True(t, validateQueenMoveWithState(s, "e4", "e3"), "e4 e3")
-	assert.True(t, validateQueenMoveWithState(s, "e4", "e2"), "e4 e2")
-	assert.True(t, validateQueenMoveWithState(s, "e4", "e1"), "e4 e1")
-	assert.True(t, validateQueenMoveWithState(s, "e4", "d3"), "e4 d3")
-	assert.True(t, validateQueenMoveWithState(s, "e4", "d4"), "e4 d4")
-	assert.True(t, validateQueenMoveWithState(s, "e4", "c4"), "e4 c4")
+	assert.True(t, validateQueenMoveWithState(s, move.NewMove("e4", "d5")), "e4 d5")
+	assert.True(t, validateQueenMoveWithState(s, move.NewMove("e4", "c6")), "e4 c6")
+	assert.True(t, validateQueenMoveWithState(s, move.NewMove("e4", "e5")), "e4 e5")
+	assert.True(t, validateQueenMoveWithState(s, move.NewMove("e4", "e6")), "e4 e6")
+	assert.True(t, validateQueenMoveWithState(s, move.NewMove("e4", "f5")), "e4 f5")
+	assert.True(t, validateQueenMoveWithState(s, move.NewMove("e4", "f4")), "e4 f4")
+	assert.True(t, validateQueenMoveWithState(s, move.NewMove("e4", "g4")), "e4 g4")
+	assert.True(t, validateQueenMoveWithState(s, move.NewMove("e4", "h4")), "e4 h4")
+	assert.True(t, validateQueenMoveWithState(s, move.NewMove("e4", "f3")), "e4 f3")
+	assert.True(t, validateQueenMoveWithState(s, move.NewMove("e4", "e3")), "e4 e3")
+	assert.True(t, validateQueenMoveWithState(s, move.NewMove("e4", "e2")), "e4 e2")
+	assert.True(t, validateQueenMoveWithState(s, move.NewMove("e4", "e1")), "e4 e1")
+	assert.True(t, validateQueenMoveWithState(s, move.NewMove("e4", "d3")), "e4 d3")
+	assert.True(t, validateQueenMoveWithState(s, move.NewMove("e4", "d4")), "e4 d4")
+	assert.True(t, validateQueenMoveWithState(s, move.NewMove("e4", "c4")), "e4 c4")
 }
 
 func TestValidateQueenMoveWithStateInvalid(t *testing.T) {
 	s := *NewTestStateFromFEN("p7/1P2P3/8/5p2/1Pp1Q2p/8/2P3P1/1P6 w - - 1 1")
-	assert.False(t, validateQueenMoveWithState(s, "e4", "b7"), "e4 b7")
-	assert.False(t, validateQueenMoveWithState(s, "e4", "a8"), "e4 a8")
-	assert.False(t, validateQueenMoveWithState(s, "e4", "e7"), "e4 e7")
-	assert.False(t, validateQueenMoveWithState(s, "e4", "e8"), "e4 e8")
-	assert.False(t, validateQueenMoveWithState(s, "e4", "g6"), "e4 g6")
-	assert.False(t, validateQueenMoveWithState(s, "e4", "h7"), "e4 h7")
-	assert.False(t, validateQueenMoveWithState(s, "e4", "g2"), "e4 g2")
-	assert.False(t, validateQueenMoveWithState(s, "e4", "h1"), "e4 h1")
-	assert.False(t, validateQueenMoveWithState(s, "e4", "c2"), "e4 c2")
-	assert.False(t, validateQueenMoveWithState(s, "e4", "b1"), "e4 b1")
-	assert.False(t, validateQueenMoveWithState(s, "e4", "b4"), "e4 b4")
-	assert.False(t, validateQueenMoveWithState(s, "e4", "a4"), "e4 a4")
+	assert.False(t, validateQueenMoveWithState(s, move.NewMove("e4", "b7")), "e4 b7")
+	assert.False(t, validateQueenMoveWithState(s, move.NewMove("e4", "a8")), "e4 a8")
+	assert.False(t, validateQueenMoveWithState(s, move.NewMove("e4", "e7")), "e4 e7")
+	assert.False(t, validateQueenMoveWithState(s, move.NewMove("e4", "e8")), "e4 e8")
+	assert.False(t, validateQueenMoveWithState(s, move.NewMove("e4", "g6")), "e4 g6")
+	assert.False(t, validateQueenMoveWithState(s, move.NewMove("e4", "h7")), "e4 h7")
+	assert.False(t, validateQueenMoveWithState(s, move.NewMove("e4", "g2")), "e4 g2")
+	assert.False(t, validateQueenMoveWithState(s, move.NewMove("e4", "h1")), "e4 h1")
+	assert.False(t, validateQueenMoveWithState(s, move.NewMove("e4", "c2")), "e4 c2")
+	assert.False(t, validateQueenMoveWithState(s, move.NewMove("e4", "b1")), "e4 b1")
+	assert.False(t, validateQueenMoveWithState(s, move.NewMove("e4", "b4")), "e4 b4")
+	assert.False(t, validateQueenMoveWithState(s, move.NewMove("e4", "a4")), "e4 a4")
 }
 
 func TestValidatePawnMoveWithStateEnPassant(t *testing.T) {
 	s := *NewTestStateFromFEN("8/8/8/3Pp3/8/8/8/8 w - e6 0 1")
 	assert.Equal(t, "e6", s.EnPassantTarget)
-	assert.True(t, validatePawnMoveWithState(s, "d5", "e6"), "d5 e6")
-	assert.True(t, validatePawnMoveWithState(s, "d5", "d6"), "d5 d6")
-	assert.False(t, validatePawnMoveWithState(s, "d5", "c6"), "d5 c6")
+	assert.True(t, validatePawnMoveWithState(s, move.NewMove("d5", "e6")), "d5 e6")
+	assert.True(t, validatePawnMoveWithState(s, move.NewMove("d5", "d6")), "d5 d6")
+	assert.False(t, validatePawnMoveWithState(s, move.NewMove("d5", "c6")), "d5 c6")
 	s.EnPassantTarget = "-"
-	assert.False(t, validatePawnMoveWithState(s, "d5", "e6"), "d5 e6")
-	assert.True(t, validatePawnMoveWithState(s, "d5", "d6"), "d5 d6")
-	assert.False(t, validatePawnMoveWithState(s, "d5", "c6"), "d5 c6")
+	assert.False(t, validatePawnMoveWithState(s, move.NewMove("d5", "e6")), "d5 e6")
+	assert.True(t, validatePawnMoveWithState(s, move.NewMove("d5", "d6")), "d5 d6")
+	assert.False(t, validatePawnMoveWithState(s, move.NewMove("d5", "c6")), "d5 c6")
 
 	s = *NewTestStateFromFEN("8/8/4p3/3P4/8/8/8/8 w - e6 0 1")
-	assert.False(t, validatePawnMoveWithState(s, "d4", "e6"), "d4 e6")
+	assert.False(t, validatePawnMoveWithState(s, move.NewMove("d4", "e6")), "d4 e6")
 
 	s = *NewTestStateFromFEN("8/8/8/8/3Pp3/8/8/8 b - d3 0 1")
 	assert.Equal(t, "d3", s.EnPassantTarget)
-	assert.True(t, validatePawnMoveWithState(s, "e4", "d3"), "e4 d3")
-	assert.True(t, validatePawnMoveWithState(s, "e4", "e3"), "e4 e3")
-	assert.False(t, validatePawnMoveWithState(s, "e4", "f3"), "e4 f3")
+	assert.True(t, validatePawnMoveWithState(s, move.NewMove("e4", "d3")), "e4 d3")
+	assert.True(t, validatePawnMoveWithState(s, move.NewMove("e4", "e3")), "e4 e3")
+	assert.False(t, validatePawnMoveWithState(s, move.NewMove("e4", "f3")), "e4 f3")
 	s.EnPassantTarget = "-"
-	assert.False(t, validatePawnMoveWithState(s, "e4", "d3"), "e4 d3")
-	assert.True(t, validatePawnMoveWithState(s, "e4", "e3"), "e4 e3")
-	assert.False(t, validatePawnMoveWithState(s, "e4", "f3"), "e4 f3")
+	assert.False(t, validatePawnMoveWithState(s, move.NewMove("e4", "d3")), "e4 d3")
+	assert.True(t, validatePawnMoveWithState(s, move.NewMove("e4", "e3")), "e4 e3")
+	assert.False(t, validatePawnMoveWithState(s, move.NewMove("e4", "f3")), "e4 f3")
 }
 
 func TestValidatePawnMoveWithStateJumpOverPiece(t *testing.T) {
 	s := *NewTestStateFromFEN("8/8/8/8/2Pp4/Pp6/PPPP4/8 w - - 0 1")
-	assert.False(t, validatePawnMoveWithState(s, "a2", "a3"), "a2 a3")
-	assert.False(t, validatePawnMoveWithState(s, "a2", "a4"), "a2 a4")
-	assert.False(t, validatePawnMoveWithState(s, "b2", "b3"), "b2 b3")
-	assert.False(t, validatePawnMoveWithState(s, "b2", "b4"), "b2 b4")
-	assert.True(t, validatePawnMoveWithState(s, "c2", "c3"), "c2 c3")
-	assert.False(t, validatePawnMoveWithState(s, "c2", "c4"), "c2 c4")
-	assert.True(t, validatePawnMoveWithState(s, "d2", "d3"), "d2 d3")
-	assert.False(t, validatePawnMoveWithState(s, "d2", "d4"), "d2 d4")
+	assert.False(t, validatePawnMoveWithState(s, move.NewMove("a2", "a3")), "a2 a3")
+	assert.False(t, validatePawnMoveWithState(s, move.NewMove("a2", "a4")), "a2 a4")
+	assert.False(t, validatePawnMoveWithState(s, move.NewMove("b2", "b3")), "b2 b3")
+	assert.False(t, validatePawnMoveWithState(s, move.NewMove("b2", "b4")), "b2 b4")
+	assert.True(t, validatePawnMoveWithState(s, move.NewMove("c2", "c3")), "c2 c3")
+	assert.False(t, validatePawnMoveWithState(s, move.NewMove("c2", "c4")), "c2 c4")
+	assert.True(t, validatePawnMoveWithState(s, move.NewMove("d2", "d3")), "d2 d3")
+	assert.False(t, validatePawnMoveWithState(s, move.NewMove("d2", "d4")), "d2 d4")
 }
 
 func TestValidatePawnMoveWithStateMaxRanks(t *testing.T) {
 	s := *NewTestStateFromFEN("8/8/8/8/2Pp4/Pp6/PPPP4/8 w - - 0 1")
-	assert.False(t, validatePawnMoveWithState(s, "a2", "a3"), "a2 a3")
-	assert.False(t, validatePawnMoveWithState(s, "a2", "a4"), "a2 a4")
-	assert.False(t, validatePawnMoveWithState(s, "b2", "b3"), "b2 b3")
-	assert.False(t, validatePawnMoveWithState(s, "b2", "b4"), "b2 b4")
-	assert.True(t, validatePawnMoveWithState(s, "c2", "c3"), "c2 c3")
-	assert.False(t, validatePawnMoveWithState(s, "c2", "c4"), "c2 c4")
-	assert.True(t, validatePawnMoveWithState(s, "d2", "d3"), "d2 d3")
-	assert.False(t, validatePawnMoveWithState(s, "d2", "d4"), "d2 d4")
+	assert.False(t, validatePawnMoveWithState(s, move.NewMove("a2", "a3")), "a2 a3")
+	assert.False(t, validatePawnMoveWithState(s, move.NewMove("a2", "a4")), "a2 a4")
+	assert.False(t, validatePawnMoveWithState(s, move.NewMove("b2", "b3")), "b2 b3")
+	assert.False(t, validatePawnMoveWithState(s, move.NewMove("b2", "b4")), "b2 b4")
+	assert.True(t, validatePawnMoveWithState(s, move.NewMove("c2", "c3")), "c2 c3")
+	assert.False(t, validatePawnMoveWithState(s, move.NewMove("c2", "c4")), "c2 c4")
+	assert.True(t, validatePawnMoveWithState(s, move.NewMove("d2", "d3")), "d2 d3")
+	assert.False(t, validatePawnMoveWithState(s, move.NewMove("d2", "d4")), "d2 d4")
 }
 
 func TestValidateKingMoveWithStateCastlingValid(t *testing.T) {
 	s := *NewTestStateFromFEN("r3k2r/8/8/8/8/8/8/R3K2R w KQkq - 0 1")
-	assert.True(t, validateKingMoveWithState(s, "e1", "g1"), "e1 g1")
-	assert.True(t, validateKingMoveWithState(s, "e1", "c1"), "e1 c1")
-	assert.True(t, validateKingMoveWithState(s, "e8", "g8"), "e8 g8")
-	assert.True(t, validateKingMoveWithState(s, "e8", "c8"), "e8 c8")
+	assert.True(t, validateKingMoveWithState(s, move.NewMove("e1", "g1")), "e1 g1")
+	assert.True(t, validateKingMoveWithState(s, move.NewMove("e1", "c1")), "e1 c1")
+	assert.True(t, validateKingMoveWithState(s, move.NewMove("e8", "g8")), "e8 g8")
+	assert.True(t, validateKingMoveWithState(s, move.NewMove("e8", "c8")), "e8 c8")
 
-	assert.True(t, validateKingMoveWithState(s, "e1", "f1"), "e1 f1")
-	assert.True(t, validateKingMoveWithState(s, "e1", "d1"), "e1 d1")
-	assert.True(t, validateKingMoveWithState(s, "e8", "f8"), "e8 f8")
-	assert.True(t, validateKingMoveWithState(s, "e8", "d8"), "e8 c8")
+	assert.True(t, validateKingMoveWithState(s, move.NewMove("e1", "f1")), "e1 f1")
+	assert.True(t, validateKingMoveWithState(s, move.NewMove("e1", "d1")), "e1 d1")
+	assert.True(t, validateKingMoveWithState(s, move.NewMove("e8", "f8")), "e8 f8")
+	assert.True(t, validateKingMoveWithState(s, move.NewMove("e8", "d8")), "e8 c8")
 }
 
 func TestValidateKingMoveWithStateCastlingInvalidRights(t *testing.T) {
 	s := *NewTestStateFromFEN("r3k2r/8/8/8/8/8/8/R3K2R w - - 0 1")
-	assert.False(t, validateKingMoveWithState(s, "e1", "g1"), "e1 g1")
-	assert.False(t, validateKingMoveWithState(s, "e1", "c1"), "e1 c1")
-	assert.False(t, validateKingMoveWithState(s, "e8", "g8"), "e8 g8")
-	assert.False(t, validateKingMoveWithState(s, "e8", "c8"), "e8 c8")
+	assert.False(t, validateKingMoveWithState(s, move.NewMove("e1", "g1")), "e1 g1")
+	assert.False(t, validateKingMoveWithState(s, move.NewMove("e1", "c1")), "e1 c1")
+	assert.False(t, validateKingMoveWithState(s, move.NewMove("e8", "g8")), "e8 g8")
+	assert.False(t, validateKingMoveWithState(s, move.NewMove("e8", "c8")), "e8 c8")
 }
 
 func TestValidateKingMoveWithStateCastlingInvalidBlockingPieces(t *testing.T) {
 	s := *NewTestStateFromFEN("r2qkb1r/8/8/8/8/8/8/R2QKB1R w KQkq - 0 1")
-	assert.False(t, validateKingMoveWithState(s, "e1", "g1"), "e1 g1")
-	assert.False(t, validateKingMoveWithState(s, "e1", "c1"), "e1 c1")
-	assert.False(t, validateKingMoveWithState(s, "e8", "g8"), "e8 g8")
-	assert.False(t, validateKingMoveWithState(s, "e8", "c8"), "e8 c8")
+	assert.False(t, validateKingMoveWithState(s, move.NewMove("e1", "g1")), "e1 g1")
+	assert.False(t, validateKingMoveWithState(s, move.NewMove("e1", "c1")), "e1 c1")
+	assert.False(t, validateKingMoveWithState(s, move.NewMove("e8", "g8")), "e8 g8")
+	assert.False(t, validateKingMoveWithState(s, move.NewMove("e8", "c8")), "e8 c8")
 
 	s = *NewTestStateFromFEN("r1b1k1nr/8/8/8/8/8/8/R1B1K1NR w KQkq - 0 1")
-	assert.False(t, validateKingMoveWithState(s, "e1", "g1"), "e1 g1")
-	assert.False(t, validateKingMoveWithState(s, "e1", "c1"), "e1 c1")
-	assert.False(t, validateKingMoveWithState(s, "e8", "g8"), "e8 g8")
-	assert.False(t, validateKingMoveWithState(s, "e8", "c8"), "e8 c8")
+	assert.False(t, validateKingMoveWithState(s, move.NewMove("e1", "g1")), "e1 g1")
+	assert.False(t, validateKingMoveWithState(s, move.NewMove("e1", "c1")), "e1 c1")
+	assert.False(t, validateKingMoveWithState(s, move.NewMove("e8", "g8")), "e8 g8")
+	assert.False(t, validateKingMoveWithState(s, move.NewMove("e8", "c8")), "e8 c8")
 
 	s = *NewTestStateFromFEN("rn2k2r/8/8/8/8/8/8/RN2K2R w KQkq - 0 1")
-	assert.False(t, validateKingMoveWithState(s, "e1", "c1"), "e1 c1")
-	assert.False(t, validateKingMoveWithState(s, "e8", "c8"), "e8 c8")
+	assert.False(t, validateKingMoveWithState(s, move.NewMove("e1", "c1")), "e1 c1")
+	assert.False(t, validateKingMoveWithState(s, move.NewMove("e8", "c8")), "e8 c8")
 }
 
 func TestGenerateMovesDoesntChangeState(t *testing.T) {
@@ -410,6 +410,14 @@ func TestGeneratePossibleMovesNotIn(t *testing.T) {
 		"d": {
 			fen:              "r1bqk1n1/p1pp1pr1/n6p/1p4p1/1b5P/QNPp2P1/PP2PP2/R1B1KBNR w KQq - 4 11",
 			notPossibleMoves: []move.Move{move.NewMove("c3", "c4")},
+		},
+		"e": {
+			fen:              board.StartingFEN,
+			notPossibleMoves: []move.Move{move.NewMove("g2", "h3")},
+		},
+		"white can't capture own en passant": {
+			fen:              "rnbqkbnr/pppppppp/8/8/3P4/8/PPP1PPPP/RNBQKBNR w KQkq d3 0 1",
+			notPossibleMoves: []move.Move{move.NewMove("c2", "d3")},
 		},
 	}
 

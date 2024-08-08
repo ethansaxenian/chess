@@ -70,3 +70,7 @@ func (h HumanPlayer) ChoosePromotionPiece(square string) piece.Piece {
 func (h HumanPlayer) String() string {
 	return h.name
 }
+
+func (h HumanPlayer) IsBot() bool {
+	return false
+}

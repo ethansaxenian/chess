@@ -49,11 +49,13 @@ func (m model) View() string {
 
 	view += fmt.Sprintf("%s to play\n\n", m.ActivePlayerRepr())
 
-	if m.IsCheck() {
+	if m.IsCheck() && !m.ActivePlayer().IsBot() {
 		view += "check!\n\n"
 	}
 
-	view += m.input.View()
+	if !m.ActivePlayer().IsBot() {
+		view += m.input.View()
+	}
 
 	return view
 }

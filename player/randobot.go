@@ -47,13 +47,6 @@ func (r RandoBot) GetMove(validMoves []move.Move) move.Move {
 	return pick
 }
 
-func (r RandoBot) State() map[string]any {
-	return map[string]any{
-		"name": "RandoBot",
-		"seed": r.seed,
-	}
-}
-
 func (r RandoBot) ChoosePromotionPiece(square string) piece.Piece {
 	randomIndex := r.rand.Intn(len(piece.PossiblePromotions))
 	pick := piece.PossiblePromotions[randomIndex]

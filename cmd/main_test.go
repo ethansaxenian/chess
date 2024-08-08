@@ -8,20 +8,24 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func testMainLoop(t *testing.T) {
+func TestMainLoop(t *testing.T) {
 	white := player.NewRandoBot(player.WithSeed(10))
 	black := player.NewRandoBot(player.WithSeed(10))
 
-	s := state.StartingState(white, black)
+	s := state.NewStartingTestState(white, black)
 
-	for i := 0; i < 20; i++ {
+	for i := 0; i < 1; i++ {
 		mainLoop(s)
 	}
 
 	firstFEN := s.FEN()
 
-	s = state.StartingState(white, black)
-	for i := 0; i < 20; i++ {
+	white = player.NewRandoBot(player.WithSeed(10))
+	black = player.NewRandoBot(player.WithSeed(10))
+
+	s = state.NewStartingTestState(white, black)
+
+	for i := 0; i < 1; i++ {
 		mainLoop(s)
 	}
 

@@ -51,6 +51,7 @@ type State struct {
 	ActiveColor     piece.Piece
 	HalfmoveClock   int
 	FullmoveNumber  int
+	headless        bool
 }
 
 func StartingState(white, black player.Player) *State {
@@ -189,16 +190,11 @@ func clearScreen() {
 	fmt.Print("\033[H\033[2J")
 }
 
-func playerStateMsg(p player.Player) []any {
-	msg := []any{}
-	for k, v := range p.State() {
-		msg = append(msg, k)
-		msg = append(msg, v)
-	}
-	return msg
-}
-
 func (s State) Print() {
+	if s.headless {
+		return
+	}
+
 	clearScreen()
 	s.Board.Print()
 	fmt.Println(s)

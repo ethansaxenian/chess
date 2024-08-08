@@ -7,7 +7,6 @@ import (
 
 type Player interface {
 	GetMove([]move.Move) move.Move
-	State() map[string]any
 	ChoosePromotionPiece(string) piece.Piece
 	IsBot() bool
 }

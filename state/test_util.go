@@ -3,6 +3,7 @@ package state
 import (
 	"github.com/ethansaxenian/chess/move"
 	"github.com/ethansaxenian/chess/piece"
+	"github.com/ethansaxenian/chess/player"
 )
 
 type testPlayer struct {
@@ -10,10 +11,6 @@ type testPlayer struct {
 
 func (t testPlayer) GetMove(moves []move.Move) move.Move {
 	return move.Move{}
-}
-
-func (t testPlayer) State() map[string]any {
-	return map[string]any{}
 }
 
 func (t testPlayer) ChoosePromotionPiece(square string) piece.Piece {
@@ -26,6 +23,14 @@ func (t testPlayer) IsBot() bool {
 
 func NewTestStateFromFEN(fen string) *State {
 	s := StartingStateFromFEN(fen, testPlayer{}, testPlayer{})
+	s.headless = true
+
+	return s
+}
+
+func NewStartingTestState(white, black player.Player) *State {
+	s := StartingState(white, black)
+	s.headless = true
 
 	return s
 }

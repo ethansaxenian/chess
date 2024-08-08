@@ -42,10 +42,6 @@ func (h HumanPlayer) GetMove(validMoves []move.Move) move.Move {
 	}
 }
 
-func (h HumanPlayer) State() map[string]any {
-	return map[string]any{"name": h.name}
-}
-
 func (h HumanPlayer) ChoosePromotionPiece(square string) piece.Piece {
 	// TODO: promotions
 	return piece.Queen

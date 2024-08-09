@@ -6,6 +6,7 @@ import (
 	"log"
 	"log/slog"
 	"os"
+	"runtime/pprof"
 	"slices"
 	"strings"
 
@@ -57,7 +58,17 @@ func mainLoop(state *state.State) {
 
 func main() {
 	var logLevel = flag.String("log-level", "info", "set the log level (debug, info, warning, error)")
+	var cpuprofile = flag.String("cpuprofile", "", "write cpu profile to file")
 	flag.Parse()
+
+	if *cpuprofile != "" {
+		f, err := os.Create(*cpuprofile)
+		if err != nil {
+			log.Fatal(err)
+		}
+		pprof.StartCPUProfile(f)
+		defer pprof.StopCPUProfile()
+	}
 
 	initLogger(*logLevel)
 

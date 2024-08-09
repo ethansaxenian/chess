@@ -9,6 +9,7 @@ import (
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/ethansaxenian/chess/move"
+	"github.com/ethansaxenian/chess/piece"
 	"github.com/ethansaxenian/chess/player"
 	"github.com/ethansaxenian/chess/state"
 )
@@ -45,7 +46,9 @@ func (m model) Init() tea.Cmd {
 }
 
 func (m model) View() string {
-	view := m.Board.String() + m.FEN() + "\n"
+	view := fmt.Sprintf("%s vs %s\n", m.PlayerRepr(piece.White), m.PlayerRepr(piece.Black))
+
+	view += m.Board.String() + m.FEN() + "\n"
 
 	view += fmt.Sprintf("%s to play\n\n", m.ActivePlayerRepr())
 
@@ -96,6 +99,9 @@ func (m model) onKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 
 func (m model) getBotMove() (tea.Model, tea.Cmd) {
 	validMoves := m.GeneratePossibleMoves()
+	if len(validMoves) == 0 {
+		return m, tea.Quit
+	}
 	mv := m.ActivePlayer().GetMove(validMoves)
 	return m, func() tea.Msg { return mv }
 }

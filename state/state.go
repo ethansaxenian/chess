@@ -174,16 +174,20 @@ func (s State) ActivePlayer() player.Player {
 	return s.Players[s.ActiveColor]
 }
 
-func (s State) ActivePlayerRepr() string {
-	var color string
-	switch s.ActiveColor {
+func (s State) PlayerRepr(color piece.Piece) string {
+	var colorStr string
+	switch color {
 	case piece.White:
-		color = "white"
+		colorStr = "white"
 	case piece.Black:
-		color = "black"
+		colorStr = "black"
 	}
 
-	return fmt.Sprintf("%s (%s)", s.ActivePlayer(), color)
+	return fmt.Sprintf("%s (%s)", s.Players[color], colorStr)
+}
+
+func (s State) ActivePlayerRepr() string {
+	return s.PlayerRepr(s.ActiveColor)
 }
 
 func clearScreen() {

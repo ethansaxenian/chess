@@ -59,6 +59,7 @@ func mainLoop(state *state.State) {
 func main() {
 	var logLevel = flag.String("log-level", "info", "set the log level (debug, info, warning, error)")
 	var cpuprofile = flag.String("cpuprofile", "", "write cpu profile to file")
+	var useTUI = flag.Bool("tui", false, "use the bubbletea tui")
 	flag.Parse()
 
 	if *cpuprofile != "" {
@@ -77,5 +78,12 @@ func main() {
 	white := player.NewRandoBot()
 	black := player.NewRandoBot()
 
-	tui.RunTUI(white, black)
+	if *useTUI {
+		tui.RunTUI(white, black)
+	} else {
+		s := state.StartingState(white, black)
+		for {
+			mainLoop(s)
+		}
+	}
 }

@@ -217,9 +217,8 @@ func (s *State) handleEnPassantCapture(_ move.Move, mc moveContext) {
 }
 
 func (s *State) handlePromotion(m move.Move, mc moveContext) {
-	if mc.isPromotion {
-		p := s.ActivePlayer().ChoosePromotionPiece(m.Target)
-		s.nextBoard[board.SquareToIndex(m.Target)] = p * s.Piece(m.Source).Color()
+	if mc.PromoteTo != piece.Empty {
+		s.nextBoard[board.SquareToIndex(m.Target)] = mc.PromoteTo * s.Piece(m.Source).Color()
 		assert.AddContext("FEN", s.FEN())
 	}
 }

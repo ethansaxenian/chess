@@ -14,7 +14,7 @@ type moveContext struct {
 	enPassantCapture    string
 	nextEnPassantTarget string
 	isCapture           bool
-	isPromotion         bool
+	PromoteTo           piece.Piece
 }
 
 func getMoveContext(s State, m move.Move) moveContext {
@@ -39,7 +39,8 @@ func getMoveContext(s State, m move.Move) moveContext {
 	}
 
 	if isPawn && m.TargetRank() == piece.MaxPawnRank[sourceColor] {
-		mc.isPromotion = true
+		p := s.ActivePlayer().ChoosePromotionPiece(m.Target)
+		mc.PromoteTo = p
 	}
 
 	if isPawn && (m.TargetRank()-m.SourceRank())*int(sourceColor) == 2 {

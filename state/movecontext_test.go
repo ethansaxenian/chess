@@ -22,7 +22,7 @@ func TestGetMoveContext(t *testing.T) {
 				isCapture:           false,
 				enPassantCapture:    "",
 				nextEnPassantTarget: noEnPassantTarget,
-				isPromotion:         false,
+				PromoteTo:           piece.Empty,
 				castling:            nil,
 			},
 		},
@@ -34,7 +34,7 @@ func TestGetMoveContext(t *testing.T) {
 				enPassantCapture:    "",
 				nextEnPassantTarget: noEnPassantTarget,
 				castling:            nil,
-				isPromotion:         false,
+				PromoteTo:           piece.Empty,
 			},
 		},
 		"white double pawn move": {
@@ -45,7 +45,7 @@ func TestGetMoveContext(t *testing.T) {
 				enPassantCapture:    "",
 				nextEnPassantTarget: "e3",
 				castling:            nil,
-				isPromotion:         false,
+				PromoteTo:           piece.Empty,
 			},
 		},
 		"black double pawn move": {
@@ -56,7 +56,7 @@ func TestGetMoveContext(t *testing.T) {
 				enPassantCapture:    "",
 				nextEnPassantTarget: "e6",
 				castling:            nil,
-				isPromotion:         false,
+				PromoteTo:           piece.Empty,
 			},
 		},
 		"white en passant capture": {
@@ -67,7 +67,7 @@ func TestGetMoveContext(t *testing.T) {
 				enPassantCapture:    "d5",
 				nextEnPassantTarget: noEnPassantTarget,
 				castling:            nil,
-				isPromotion:         false,
+				PromoteTo:           piece.Empty,
 			},
 		},
 		"black en passant capture": {
@@ -78,7 +78,7 @@ func TestGetMoveContext(t *testing.T) {
 				enPassantCapture:    "e4",
 				nextEnPassantTarget: noEnPassantTarget,
 				castling:            nil,
-				isPromotion:         false,
+				PromoteTo:           piece.Empty,
 			},
 		},
 		"white kingside castle": {
@@ -89,7 +89,7 @@ func TestGetMoveContext(t *testing.T) {
 				enPassantCapture:    "",
 				nextEnPassantTarget: noEnPassantTarget,
 				castling:            &struct{ side piece.Side }{piece.Kingside},
-				isPromotion:         false,
+				PromoteTo:           piece.Empty,
 			},
 		},
 		"white queenside castle": {
@@ -100,7 +100,7 @@ func TestGetMoveContext(t *testing.T) {
 				enPassantCapture:    "",
 				nextEnPassantTarget: noEnPassantTarget,
 				castling:            &struct{ side piece.Side }{piece.Queenside},
-				isPromotion:         false,
+				PromoteTo:           piece.Empty,
 			},
 		},
 		"black kingside castle": {
@@ -111,7 +111,7 @@ func TestGetMoveContext(t *testing.T) {
 				enPassantCapture:    "",
 				nextEnPassantTarget: noEnPassantTarget,
 				castling:            &struct{ side piece.Side }{piece.Kingside},
-				isPromotion:         false,
+				PromoteTo:           piece.Empty,
 			},
 		},
 		"black queenside castle": {
@@ -122,7 +122,7 @@ func TestGetMoveContext(t *testing.T) {
 				enPassantCapture:    "",
 				nextEnPassantTarget: noEnPassantTarget,
 				castling:            &struct{ side piece.Side }{piece.Queenside},
-				isPromotion:         false,
+				PromoteTo:           piece.Empty,
 			},
 		},
 		"white promotion": {
@@ -133,7 +133,7 @@ func TestGetMoveContext(t *testing.T) {
 				enPassantCapture:    "",
 				nextEnPassantTarget: noEnPassantTarget,
 				castling:            nil,
-				isPromotion:         true,
+				PromoteTo:           piece.Queen,
 			},
 		},
 		"black promotion": {
@@ -144,7 +144,7 @@ func TestGetMoveContext(t *testing.T) {
 				enPassantCapture:    "",
 				nextEnPassantTarget: noEnPassantTarget,
 				castling:            nil,
-				isPromotion:         true,
+				PromoteTo:           piece.Queen,
 			},
 		},
 		"white promotion + capture": {
@@ -155,7 +155,7 @@ func TestGetMoveContext(t *testing.T) {
 				enPassantCapture:    "",
 				nextEnPassantTarget: noEnPassantTarget,
 				castling:            nil,
-				isPromotion:         true,
+				PromoteTo:           piece.Queen,
 			},
 		},
 		"black promotion + capture": {
@@ -166,7 +166,7 @@ func TestGetMoveContext(t *testing.T) {
 				enPassantCapture:    "",
 				nextEnPassantTarget: noEnPassantTarget,
 				castling:            nil,
-				isPromotion:         true,
+				PromoteTo:           piece.Queen,
 			},
 		},
 	}

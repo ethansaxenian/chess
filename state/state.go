@@ -42,7 +42,7 @@ func (g gameOverState) String() string {
 
 type State struct {
 	Players         map[piece.Piece]player.Player
-	Castling        map[piece.Piece][2]bool
+	Castling        map[piece.Piece]map[piece.Side]bool
 	EnPassantTarget string
 	Moves           []move.Move
 	fens            []string
@@ -88,25 +88,25 @@ func (s *State) LoadFEN(fen string) {
 	}
 	s.ActiveColor = activeColor
 
-	whiteCastling := [2]bool{}
-	blackCastling := [2]bool{}
+	whiteCastling := map[piece.Side]bool{}
+	blackCastling := map[piece.Side]bool{}
 	for _, char := range fenFields[2] {
 		switch char {
 		case 'K':
-			whiteCastling[0] = true
+			whiteCastling[piece.Kingside] = true
 		case 'Q':
-			whiteCastling[1] = true
+			whiteCastling[piece.Queenside] = true
 		case 'k':
-			blackCastling[0] = true
+			blackCastling[piece.Kingside] = true
 		case 'q':
-			blackCastling[1] = true
+			blackCastling[piece.Queenside] = true
 		case '-':
 			continue
 		default:
 			assert.Raise(fmt.Sprintf("invalid FEN castling rights: %s", fen))
 		}
 	}
-	s.Castling = map[piece.Piece][2]bool{
+	s.Castling = map[piece.Piece]map[piece.Side]bool{
 		piece.White: whiteCastling,
 		piece.Black: blackCastling,
 	}
@@ -137,16 +137,16 @@ func (s State) FEN() string {
 	}
 
 	var castling string
-	if s.Castling[piece.White][0] {
+	if s.Castling[piece.White][piece.Kingside] {
 		castling += "K"
 	}
-	if s.Castling[piece.White][1] {
+	if s.Castling[piece.White][piece.Queenside] {
 		castling += "Q"
 	}
-	if s.Castling[piece.Black][0] {
+	if s.Castling[piece.Black][piece.Kingside] {
 		castling += "k"
 	}
-	if s.Castling[piece.Black][1] {
+	if s.Castling[piece.Black][piece.Queenside] {
 		castling += "q"
 	}
 	if castling == "" {
@@ -204,43 +204,27 @@ func (s State) Print() {
 	fmt.Println(s)
 }
 
-func (s *State) handleEnPassantAvailable(m move.Move) {
-	isDoubleMove := int(m.TargetRank()-m.SourceRank())*int(s.Piece(m.Source).Color()) == 2
-
-	if s.Piece(m.Source).Type() == piece.Pawn && isDoubleMove {
-		enPassantSquare := board.CoordsToSquare(int(m.TargetFile()), m.TargetRank()-int(s.Piece(m.Source).Color()))
-		s.EnPassantTarget = enPassantSquare
-	} else {
-		s.EnPassantTarget = noEnPassantTarget
-	}
+func (s *State) handleEnPassantAvailable(_ move.Move, mc moveContext) {
+	s.EnPassantTarget = mc.nextEnPassantTarget
 	assert.AddContext("FEN", s.FEN())
-	assert.AddContext("moves", s.Moves)
 }
 
-func (s *State) handleEnPassantCapture(m move.Move) {
-	if s.Piece(m.Source).Type() == piece.Pawn && m.Target == s.EnPassantTarget {
-		capturedSquare := board.AddRank(m.Target, int(s.Piece(m.Source).Color()*-1))
-		capturedPiece := s.Piece(capturedSquare)
-
-		assert.Assert(
-			capturedPiece.Type() == piece.Pawn && capturedPiece.Color() == s.Piece(m.Source).Color()*-1,
-			fmt.Sprintf("handleEnPassantCapture: invalid capture: %s %s", m.Source, m.Target),
-		)
-
-		s.nextBoard[board.SquareToIndex(capturedSquare)] = piece.Empty
+func (s *State) handleEnPassantCapture(_ move.Move, mc moveContext) {
+	if mc.enPassantCapture != "" {
+		s.nextBoard[board.SquareToIndex(mc.enPassantCapture)] = piece.Empty
 		assert.AddContext("FEN", s.FEN())
-		assert.AddContext("moves", s.Moves)
 	}
 }
 
-func (s *State) handlePromotion(m move.Move) {
-	if s.Piece(m.Source).Type() == piece.Pawn && m.TargetRank() == piece.MaxPawnRank[s.Piece(m.Source).Color()] {
+func (s *State) handlePromotion(m move.Move, mc moveContext) {
+	if mc.isPromotion {
 		p := s.ActivePlayer().ChoosePromotionPiece(m.Target)
 		s.nextBoard[board.SquareToIndex(m.Target)] = p * s.Piece(m.Source).Color()
+		assert.AddContext("FEN", s.FEN())
 	}
 }
 
-func (s *State) handleUpdateCastlingRights(m move.Move) {
+func (s *State) handleUpdateCastlingRights(m move.Move, _ moveContext) {
 	assert.AddContext("move", m)
 
 	// rook movement
@@ -248,9 +232,9 @@ func (s *State) handleUpdateCastlingRights(m move.Move) {
 		castlingRights, ok := s.Castling[color]
 		assert.Assert(ok, fmt.Sprintf("invalid castling rights: color %d not found: %v", color, s.Castling))
 
-		for i, square := range startingSquares {
+		for side, square := range startingSquares {
 			if s.nextBoard.Square(square) != piece.Rook*color {
-				castlingRights[i] = false
+				castlingRights[side] = false
 			}
 		}
 
@@ -259,23 +243,20 @@ func (s *State) handleUpdateCastlingRights(m move.Move) {
 
 	// king movement
 	if s.Piece(m.Source).Type() == piece.King {
-		s.Castling[s.Piece(m.Source).Color()] = [2]bool{false, false}
+		color := s.Piece(m.Source).Color()
+		s.Castling[color][piece.Kingside] = false
+		s.Castling[color][piece.Queenside] = false
 	}
 }
 
-func (s *State) handleCastle(m move.Move) {
+func (s *State) handleCastle(m move.Move, mc moveContext) {
 	// castling occurs
-	if s.Piece(m.Source).Type() == piece.King && m.Source == piece.StartingKingSquares[s.Piece(m.Source).Color()] {
-
-		for i, castlingTarget := range piece.CastlingSquares[s.Piece(m.Source).Color()] {
-			if m.Target == castlingTarget {
-				rookSource := piece.StartingRookSquares[s.Piece(m.Source).Color()][i]
-				rookTarget := piece.RookCastlingSquares[s.Piece(m.Source).Color()][i]
-				assert.Assert(s.Piece(rookSource) == piece.Rook*s.Piece(m.Source).Color(), "no rook found when castling")
-				s.nextBoard.MakeMove(move.NewMove(rookSource, rookTarget))
-			}
-		}
-
+	if mc.castling != nil {
+		color := s.Piece(m.Source).Color()
+		rookSource := piece.StartingRookSquares[color][mc.castling.side]
+		rookTarget := piece.RookCastlingSquares[color][mc.castling.side]
+		assert.Assert(s.Piece(rookSource) == piece.Rook*color, "no rook found when castling")
+		s.nextBoard.MakeMove(move.NewMove(rookSource, rookTarget))
 	}
 }
 
@@ -284,33 +265,24 @@ func (s *State) MakeMove(m move.Move) {
 	assert.AddContext("moves", s.Moves)
 	assert.AddContext("move", m)
 
-	var isCapture bool
-	if s.Piece(m.Target) == piece.Empty {
-		if s.Piece(m.Source).Type() == piece.Pawn && m.Target == s.EnPassantTarget {
-			isCapture = true
-		} else {
-			isCapture = false
-		}
-	} else {
-		isCapture = true
-	}
+	mc := getMoveContext(*s, m)
 
 	var isPawnMove = s.Piece(m.Source).Type() == piece.Pawn
 
-	s.Moves = append(s.Moves, m)
-	s.handleEnPassantCapture(m)
-	s.handleEnPassantAvailable(m)
 	s.nextBoard.MakeMove(m)
-	s.handleCastle(m)
-	s.handleUpdateCastlingRights(m)
-	s.handlePromotion(m)
+	s.handleEnPassantCapture(m, mc)
+	s.handleCastle(m, mc)
+	s.handlePromotion(m, mc)
+	s.handleEnPassantAvailable(m, mc)
+	s.handleUpdateCastlingRights(m, mc)
 	s.Board = s.nextBoard
+	s.Moves = append(s.Moves, m)
 
 	if s.ActiveColor.Color() == piece.Black {
 		s.FullmoveNumber++
 	}
 
-	if isPawnMove || isCapture {
+	if isPawnMove || mc.isCapture {
 		s.HalfmoveClock = 0
 	} else {
 		s.HalfmoveClock++

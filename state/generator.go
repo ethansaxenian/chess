@@ -359,19 +359,19 @@ func validateKingMoveWithState(s State, m move.Move) bool {
 	castlingRights := s.Castling[color]
 
 	if m.Source == startingSquare {
-		for i := range []int{0, 1} {
+		for _, side := range [2]piece.Side{piece.Kingside, piece.Queenside} {
 			// not trying to castle
-			if m.Target != castlingSquares[i] {
+			if m.Target != castlingSquares[side] {
 				continue
 			}
 
 			// can't castle
-			if !castlingRights[i] {
+			if !castlingRights[side] {
 				return false
 			}
 
 			// blocking pieces
-			for _, square := range intermediateSquares[i] {
+			for _, square := range intermediateSquares[side] {
 				if s.Piece(square) != piece.Empty {
 					return false
 				}

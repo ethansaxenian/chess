@@ -6,10 +6,12 @@ import (
 	"strconv"
 
 	"github.com/ethansaxenian/chess/assert"
+	"github.com/ethansaxenian/chess/piece"
 )
 
 type Move struct {
 	Source, Target string
+	PromoteTo      piece.Piece
 }
 
 func (m Move) SourceRank() int {

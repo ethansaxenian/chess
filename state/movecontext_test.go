@@ -5,6 +5,7 @@ import (
 
 	"github.com/ethansaxenian/chess/board"
 	"github.com/ethansaxenian/chess/move"
+	"github.com/ethansaxenian/chess/piece"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -87,18 +88,18 @@ func TestGetMoveContext(t *testing.T) {
 				isCapture:           false,
 				enPassantCapture:    "",
 				nextEnPassantTarget: noEnPassantTarget,
-				castling:            &struct{ side side }{kingside},
+				castling:            &struct{ side piece.Side }{piece.Kingside},
 				isPromotion:         false,
 			},
 		},
 		"white queenside castle": {
 			startingFEN: "r3k2r/8/8/8/8/8/8/R3K2R w KQkq - 0 1",
-			move:        move.NewMove("e1", "b1"),
+			move:        move.NewMove("e1", "c1"),
 			expected: moveContext{
 				isCapture:           false,
 				enPassantCapture:    "",
 				nextEnPassantTarget: noEnPassantTarget,
-				castling:            &struct{ side side }{queenside},
+				castling:            &struct{ side piece.Side }{piece.Queenside},
 				isPromotion:         false,
 			},
 		},
@@ -109,18 +110,18 @@ func TestGetMoveContext(t *testing.T) {
 				isCapture:           false,
 				enPassantCapture:    "",
 				nextEnPassantTarget: noEnPassantTarget,
-				castling:            &struct{ side side }{kingside},
+				castling:            &struct{ side piece.Side }{piece.Kingside},
 				isPromotion:         false,
 			},
 		},
 		"black queenside castle": {
 			startingFEN: "r3k2r/8/8/8/8/8/8/R3K2R w KQkq - 0 1",
-			move:        move.NewMove("e8", "b8"),
+			move:        move.NewMove("e8", "c8"),
 			expected: moveContext{
 				isCapture:           false,
 				enPassantCapture:    "",
 				nextEnPassantTarget: noEnPassantTarget,
-				castling:            &struct{ side side }{queenside},
+				castling:            &struct{ side piece.Side }{piece.Queenside},
 				isPromotion:         false,
 			},
 		},

@@ -12,16 +12,20 @@ import (
 
 func TestHandleEnPassantAvailable(t *testing.T) {
 	s := NewTestStateFromFEN(board.StartingFEN)
-	s.handleEnPassantAvailable(move.NewMove("e2", "e4"))
+	m := move.NewMove("e2", "e4")
+	s.handleEnPassantAvailable(m, getMoveContext(*s, m))
 	assert.Equal(t, "e3", s.EnPassantTarget)
 
-	s.handleEnPassantAvailable(move.NewMove("e7", "e5"))
+	m = move.NewMove("e7", "e5")
+	s.handleEnPassantAvailable(m, getMoveContext(*s, m))
 	assert.Equal(t, "e6", s.EnPassantTarget)
 
-	s.handleEnPassantAvailable(move.NewMove("e2", "e3"))
+	m = move.NewMove("e2", "e3")
+	s.handleEnPassantAvailable(m, getMoveContext(*s, m))
 	assert.Equal(t, noEnPassantTarget, s.EnPassantTarget)
 
-	s.handleEnPassantAvailable(move.NewMove("e7", "e6"))
+	m = move.NewMove("e7", "e6")
+	s.handleEnPassantAvailable(m, getMoveContext(*s, m))
 	assert.Equal(t, noEnPassantTarget, s.EnPassantTarget)
 }
 
@@ -48,8 +52,8 @@ func TestLoadFen(t *testing.T) {
 
 	assert.Equal(t, strings.Fields(board.StartingFEN)[0], s.Board.FEN())
 	assert.Equal(t, piece.White, s.ActiveColor)
-	assert.Equal(t, [2]bool{true, true}, s.Castling[piece.White])
-	assert.Equal(t, [2]bool{true, true}, s.Castling[piece.Black])
+	assert.Equal(t, map[piece.Side]bool{piece.Kingside: true, piece.Queenside: true}, s.Castling[piece.White])
+	assert.Equal(t, map[piece.Side]bool{piece.Kingside: true, piece.Queenside: true}, s.Castling[piece.Black])
 	assert.Equal(t, noEnPassantTarget, s.EnPassantTarget)
 	assert.Equal(t, 0, s.HalfmoveClock)
 	assert.Equal(t, 1, s.FullmoveNumber)
@@ -67,38 +71,48 @@ func TestToFen(t *testing.T) {
 func TestHandlePromotion(t *testing.T) {
 	s := NewTestStateFromFEN("8/4P3/8/8/8/8/4p3/8 w - - 0 1")
 
-	s.handlePromotion(move.NewMove("e7", "e8"))
+	m := move.NewMove("e7", "e8")
+	s.handlePromotion(m, getMoveContext(*s, m))
 	assert.Equal(t, piece.Queen*piece.White, s.nextBoard.Square("e8"))
 
-	s.handlePromotion(move.NewMove("e7", "d8"))
+	m = move.NewMove("e7", "d8")
+	s.handlePromotion(m, getMoveContext(*s, m))
 	assert.Equal(t, piece.Queen*piece.White, s.nextBoard.Square("d8"))
 
-	s.handlePromotion(move.NewMove("e7", "f8"))
+	m = move.NewMove("e7", "f8")
+	s.handlePromotion(m, getMoveContext(*s, m))
 	assert.Equal(t, piece.Queen*piece.White, s.nextBoard.Square("f8"))
 
-	s.handlePromotion(move.NewMove("e2", "e1"))
+	m = move.NewMove("e2", "e1")
+	s.handlePromotion(m, getMoveContext(*s, m))
 	assert.Equal(t, piece.Queen*piece.Black, s.nextBoard.Square("e1"))
 
-	s.handlePromotion(move.NewMove("e2", "d1"))
+	m = move.NewMove("e2", "d1")
+	s.handlePromotion(m, getMoveContext(*s, m))
 	assert.Equal(t, piece.Queen*piece.Black, s.nextBoard.Square("d1"))
 
-	s.handlePromotion(move.NewMove("e2", "f1"))
+	m = move.NewMove("e2", "f1")
+	s.handlePromotion(m, getMoveContext(*s, m))
 	assert.Equal(t, piece.Queen*piece.Black, s.nextBoard.Square("f1"))
 }
 
 func TestHandleCastle(t *testing.T) {
 	s := NewTestStateFromFEN("r3k2r/8/8/8/8/8/8/R3K2R w KQkq - 0 1")
 
-	s.handleCastle(move.NewMove("e1", "g1"))
+	m := move.NewMove("e1", "g1")
+	s.handleCastle(m, getMoveContext(*s, m))
 	assert.Equal(t, piece.Rook*piece.White, s.nextBoard.Square("f1"))
 
-	s.handleCastle(move.NewMove("e1", "c1"))
+	m = move.NewMove("e1", "c1")
+	s.handleCastle(m, getMoveContext(*s, m))
 	assert.Equal(t, piece.Rook*piece.White, s.nextBoard.Square("d1"))
 
-	s.handleCastle(move.NewMove("e8", "g8"))
+	m = move.NewMove("e8", "g8")
+	s.handleCastle(m, getMoveContext(*s, m))
 	assert.Equal(t, piece.Rook*piece.Black, s.nextBoard.Square("f8"))
 
-	s.handleCastle(move.NewMove("e8", "c8"))
+	m = move.NewMove("e8", "c8")
+	s.handleCastle(m, getMoveContext(*s, m))
 	assert.Equal(t, piece.Rook*piece.Black, s.nextBoard.Square("d8"))
 }
 
@@ -106,50 +120,58 @@ func TestHandleUpdateCastlingRights(t *testing.T) {
 	fen := "r3k2r/8/8/8/8/8/8/R3K2R w KQkq - 0 1"
 	s := NewTestStateFromFEN(fen)
 
-	s.handleUpdateCastlingRights(move.NewMove("e1", "e2"))
-	assert.Equal(t, [2]bool{false, false}, s.Castling[piece.White])
-	assert.Equal(t, [2]bool{true, true}, s.Castling[piece.Black])
+	m := move.NewMove("e1", "e2")
+	s.handleUpdateCastlingRights(m, getMoveContext(*s, m))
+	assert.Equal(t, map[piece.Side]bool{piece.Kingside: false, piece.Queenside: false}, s.Castling[piece.White])
+	assert.Equal(t, map[piece.Side]bool{piece.Kingside: true, piece.Queenside: true}, s.Castling[piece.Black])
 
 	s.LoadFEN(fen)
-	s.handleUpdateCastlingRights(move.NewMove("e8", "e7"))
-	assert.Equal(t, [2]bool{true, true}, s.Castling[piece.White])
-	assert.Equal(t, [2]bool{false, false}, s.Castling[piece.Black])
+	m = move.NewMove("e8", "e7")
+	s.handleUpdateCastlingRights(m, getMoveContext(*s, m))
+	assert.Equal(t, map[piece.Side]bool{piece.Kingside: true, piece.Queenside: true}, s.Castling[piece.White])
+	assert.Equal(t, map[piece.Side]bool{piece.Kingside: false, piece.Queenside: false}, s.Castling[piece.Black])
 
 	s.LoadFEN(fen)
 	s.nextBoard.MakeMove(move.NewMove("a1", "a2"))
-	s.handleUpdateCastlingRights(move.NewMove("a1", "a2"))
-	assert.Equal(t, [2]bool{true, false}, s.Castling[piece.White])
-	assert.Equal(t, [2]bool{true, true}, s.Castling[piece.Black])
+	m = move.NewMove("a1", "a2")
+	s.handleUpdateCastlingRights(m, getMoveContext(*s, m))
+	assert.Equal(t, map[piece.Side]bool{piece.Kingside: true, piece.Queenside: false}, s.Castling[piece.White])
+	assert.Equal(t, map[piece.Side]bool{piece.Kingside: true, piece.Queenside: true}, s.Castling[piece.Black])
 
 	s.LoadFEN(fen)
 	s.nextBoard.MakeMove(move.NewMove("h1", "h2"))
-	s.handleUpdateCastlingRights(move.NewMove("h1", "h2"))
-	assert.Equal(t, [2]bool{false, true}, s.Castling[piece.White])
-	assert.Equal(t, [2]bool{true, true}, s.Castling[piece.Black])
+	m = move.NewMove("h1", "h2")
+	s.handleUpdateCastlingRights(m, getMoveContext(*s, m))
+	assert.Equal(t, map[piece.Side]bool{piece.Kingside: false, piece.Queenside: true}, s.Castling[piece.White])
+	assert.Equal(t, map[piece.Side]bool{piece.Kingside: true, piece.Queenside: true}, s.Castling[piece.Black])
 
 	s.LoadFEN(fen)
 	s.nextBoard.MakeMove(move.NewMove("a8", "a7"))
-	s.handleUpdateCastlingRights(move.NewMove("a8", "a7"))
-	assert.Equal(t, [2]bool{true, true}, s.Castling[piece.White])
-	assert.Equal(t, [2]bool{true, false}, s.Castling[piece.Black])
+	m = move.NewMove("a8", "a7")
+	s.handleUpdateCastlingRights(m, getMoveContext(*s, m))
+	assert.Equal(t, map[piece.Side]bool{piece.Kingside: true, piece.Queenside: true}, s.Castling[piece.White])
+	assert.Equal(t, map[piece.Side]bool{piece.Kingside: true, piece.Queenside: false}, s.Castling[piece.Black])
 
 	s.LoadFEN(fen)
 	s.nextBoard.MakeMove(move.NewMove("h8", "h7"))
-	s.handleUpdateCastlingRights(move.NewMove("h8", "h7"))
-	assert.Equal(t, [2]bool{true, true}, s.Castling[piece.White])
-	assert.Equal(t, [2]bool{false, true}, s.Castling[piece.Black])
+	m = move.NewMove("h8", "h7")
+	s.handleUpdateCastlingRights(m, getMoveContext(*s, m))
+	assert.Equal(t, map[piece.Side]bool{piece.Kingside: true, piece.Queenside: true}, s.Castling[piece.White])
+	assert.Equal(t, map[piece.Side]bool{piece.Kingside: false, piece.Queenside: true}, s.Castling[piece.Black])
 
 	s.LoadFEN(fen)
 	s.nextBoard.MakeMove(move.NewMove("a1", "a8"))
-	s.handleUpdateCastlingRights(move.NewMove("a1", "a8"))
-	assert.Equal(t, [2]bool{true, false}, s.Castling[piece.White])
-	assert.Equal(t, [2]bool{true, false}, s.Castling[piece.Black])
+	m = move.NewMove("a1", "a8")
+	s.handleUpdateCastlingRights(m, getMoveContext(*s, m))
+	assert.Equal(t, map[piece.Side]bool{piece.Kingside: true, piece.Queenside: false}, s.Castling[piece.White])
+	assert.Equal(t, map[piece.Side]bool{piece.Kingside: true, piece.Queenside: false}, s.Castling[piece.Black])
 
 	s.LoadFEN(fen)
 	s.nextBoard.MakeMove(move.NewMove("h8", "h1"))
-	s.handleUpdateCastlingRights(move.NewMove("h8", "h1"))
-	assert.Equal(t, [2]bool{false, true}, s.Castling[piece.White])
-	assert.Equal(t, [2]bool{false, true}, s.Castling[piece.Black])
+	m = move.NewMove("h8", "h1")
+	s.handleUpdateCastlingRights(m, getMoveContext(*s, m))
+	assert.Equal(t, map[piece.Side]bool{piece.Kingside: false, piece.Queenside: true}, s.Castling[piece.White])
+	assert.Equal(t, map[piece.Side]bool{piece.Kingside: false, piece.Queenside: true}, s.Castling[piece.Black])
 }
 
 func TestUndo(t *testing.T) {

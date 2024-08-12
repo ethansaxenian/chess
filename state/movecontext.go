@@ -9,15 +9,8 @@ import (
 	"github.com/ethansaxenian/chess/piece"
 )
 
-type side int
-
-const (
-	kingside side = iota
-	queenside
-)
-
 type moveContext struct {
-	castling            *struct{ side side }
+	castling            *struct{ side piece.Side }
 	enPassantCapture    string
 	nextEnPassantTarget string
 	isCapture           bool
@@ -57,11 +50,11 @@ func getMoveContext(s State, m move.Move) moveContext {
 	}
 
 	if s.Piece(m.Source).Type() == piece.King && m.Source == piece.StartingKingSquares[sourceColor] {
-		switch m.TargetFile() {
-		case 'g':
-			mc.castling = &struct{ side side }{kingside}
-		case 'b':
-			mc.castling = &struct{ side side }{queenside}
+		switch m.Target {
+		case "g1", "g8":
+			mc.castling = &struct{ side piece.Side }{piece.Kingside}
+		case "c1", "c8":
+			mc.castling = &struct{ side piece.Side }{piece.Queenside}
 		}
 
 		assert.Assert(

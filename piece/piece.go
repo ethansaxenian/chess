@@ -23,6 +23,13 @@ const (
 	Black Piece = -1
 )
 
+type Side int
+
+const (
+	Kingside Side = iota
+	Queenside
+)
+
 func (p Piece) Color() Piece {
 	if p > 0 {
 		return White
@@ -117,22 +124,22 @@ var StartingKingSquares = map[Piece]string{
 	Black: "e8",
 }
 
-var StartingRookSquares = map[Piece][2]string{
-	White: {"h1", "a1"},
-	Black: {"h8", "a8"},
+var StartingRookSquares = map[Piece]map[Side]string{
+	White: {Kingside: "h1", Queenside: "a1"},
+	Black: {Kingside: "h8", Queenside: "a8"},
 }
 
-var CastlingSquares = map[Piece][2]string{
-	White: {"g1", "c1"},
-	Black: {"g8", "c8"},
+var CastlingSquares = map[Piece]map[Side]string{
+	White: {Kingside: "g1", Queenside: "c1"},
+	Black: {Kingside: "g8", Queenside: "c8"},
 }
 
-var CastlingIntermediateSquares = map[Piece][2][]string{
-	White: {{"f1", "g1"}, {"d1", "c1", "b1"}},
-	Black: {{"f8", "g8"}, {"d8", "c8", "b8"}},
+var CastlingIntermediateSquares = map[Piece]map[Side][]string{
+	White: {Kingside: {"f1", "g1"}, Queenside: {"d1", "c1", "b1"}},
+	Black: {Kingside: {"f8", "g8"}, Queenside: {"d8", "c8", "b8"}},
 }
 
-var RookCastlingSquares = map[Piece][2]string{
-	White: {"f1", "d1"},
-	Black: {"f8", "d8"},
+var RookCastlingSquares = map[Piece]map[Side]string{
+	White: {Kingside: "f1", Queenside: "d1"},
+	Black: {Kingside: "f8", Queenside: "d8"},
 }
